@@ -1,0 +1,9 @@
+D:\Homework\Unity\FiveVsFive\Temp\UnityVS_bin\Debug\Assembly-CSharp.dll
+D:\Homework\Unity\FiveVsFive\Temp\UnityVS_bin\Debug\Assembly-CSharp.pdb
+D:\Homework\Unity\FiveVsFive\Temp\UnityVS_bin\Debug\UnityEditor.dll
+D:\Homework\Unity\FiveVsFive\Temp\UnityVS_bin\Debug\UnityEngine.dll
+D:\Homework\Unity\FiveVsFive\Temp\UnityVS_bin\Debug\UnityEngine.xml
+D:\Homework\Unity\FiveVsFive\Temp\UnityVS_bin\Debug\UnityEditor.xml
+D:\Homework\Unity\FiveVsFive\obj\Debug\UnityVS.FiveVsFive.CSharp.csprojResolveAssemblyReference.cache
+D:\Homework\Unity\FiveVsFive\obj\Debug\Assembly-CSharp.dll
+D:\Homework\Unity\FiveVsFive\obj\Debug\Assembly-CSharp.pdb
