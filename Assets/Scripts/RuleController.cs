@@ -4,67 +4,21 @@ namespace FiveVsFive
 {
     public class RuleController
     {
-        public static Chess[] directions = { 
-                 new Chess(0,1),new Chess(0,-1),new Chess(-1,0),new Chess(1,0),//上下左右
-                 new Chess(1,1),new Chess(-1,-1),new Chess(-1,1),new Chess(1,-1)//斜着
-                                             };
-
-        int[][] chessBoard;
-        public int[][] getChessBoard()
-        {
-            return chessBoard;
-        }
-
-        public RuleController()
-        {
-            chessBoard = new int[5][];
-            for (int i = 0; i < 5; ++i)
-                chessBoard[i] = new int[5];
-
-            meFisrt = false;
-        }
-
+        ChessBoard board;
         bool meFisrt;
+
+        public RuleController(ChessBoard board)
+        {
+            meFisrt = false;
+            this.board = board;
+        }
         public void newTurn()
         {
             meFisrt = !meFisrt;
-            Chess10.getInstance().reset();//初始化本地十棋
+            board.reset();
 
-            int i = 0;//初始化棋盘
-            for (i = 0; i < 5; ++i)
-                for (int j = 0; j < 5; ++j)
-                    chessBoard[i][j] = -1;
-
-            for (i = 0; i < 5; ++i)
-                chessBoard[i][0] = i;
-            for (i = 5; i < 10; ++i)
-                chessBoard[i - 5][4] = i;
-
-            lastSelected = -1;
-            Chess10.getInstance().isMyTurn = meFisrt;
+            board.isMyTurn = meFisrt;
         }
-
-        int lastSelected;
-        public void upChess(int index)
-        {
-            List<int> list = Chess10.getInstance().showIndexs;
-            if (lastSelected != index)//未选中
-            {
-                getCanGo(index, ref list);
-                lastSelected = index;
-            }
-            else
-            {
-                list.Clear();
-                lastSelected = -1;
-            }
-
-            list.Insert(0, lastSelected);
-            LocalServer.Instance.showTips(list.ToArray());
-            Chess10.getInstance().upChess();
-        }
-
-
         public void moveChess(int pos, bool myself)
         {
             Chess10 chess10 = Chess10.getInstance();

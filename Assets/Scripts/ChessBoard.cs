@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace FiveVsFive
 {
-    public class Chess
+    public class Chess 
     {
         public int x, y;
         public bool isMine;
@@ -38,21 +38,13 @@ namespace FiveVsFive
             return this.x > 4 || this.x < 0 || this.y < 0 || this.y > 4;
         }
     }
-    public class Chess10
+    public class ChessBoard
     {
-        static Chess10 chess10;
-        public static Chess10 getInstance()
-        {
-            if (chess10 == null)
-                chess10 = new Chess10();
-            return chess10;
-        }
-
         Chess[] chesses;
-        public Chess10()
+        public bool isMyTurn { get; set; }
+        public ChessBoard()
         {
             chesses = new Chess[10];
-            showIndexs = new List<int>();
         }
 
         public void reset()
@@ -65,10 +57,6 @@ namespace FiveVsFive
                 chesses[index++] = new Chess(i, 0, true);
             for (i = 0; i < 5; ++i)
                 chesses[index++] = new Chess(i, 4, false);
-            selectedIndex = -1;
-            showIndexs.Clear();
-
-            ChessController.Action = ChessController.ChessAction.RESET;
         }
 
         public Chess getChess(int index)
@@ -78,8 +66,6 @@ namespace FiveVsFive
             else
                 return null;
         }
-
-        public bool isMyTurn { get; set; }
 
         public Chess[] getChesses(bool my)
         {
@@ -99,26 +85,64 @@ namespace FiveVsFive
                     count++;
             return count;
         }
-
-        public int selectedIndex;
-        public List<int> showIndexs;
-        public void upChess()
+        public int[] getCanGo(int index)
         {
-            selectedIndex = showIndexs[0];
-            showIndexs.RemoveAt(0);
-            ChessController.Action = ChessController.ChessAction.UP_CHESS;
+            List<int> list = new List<int>();
+            if (index > -1)
+            {
+                Chess selected = chesses[index];
+                int dirCount = selected.x % 2 == selected.y % 2 ? 8 : 4;//一奇一偶的只可走上下左右
+
+                for (int i = 0; i < dirCount; ++i)
+                {
+                    Chess newC = new Chess(selected);
+                    for (int step = 1; step < 5; ++step)
+                    {
+                        newC += directions[i];
+                        if (newC.outBoard() || hasChess(newC))
+                            break;
+                        else
+                        {
+                            int countEn = getCount(false);
+                            switch (countEn)
+                            {
+
+                                case 3://不可同时挑与夹
+
+                                    break;
+                                case 2://不可挑
+
+                                    break;
+                                case 1://不可夹
+
+                                    break;
+                            }
+
+                            list.Add(newC.y * 5 + newC.x);
+                        }
+                    }
+                }
+            }
+            return list.ToArray();
+        }
+
+        bool hasChess(Chess newC)
+        {
+            for (int i = 0; i < 10; ++i)
+            {
+                if (chesses[i].x == newC.x && chesses[i].y == newC.y)
+                    return true;
+            }
+            return false;
         }
 
         public void moveChess(int index,int x, int y)
         {
-            chesses[index].x = x;
-            chesses[index].y = y;
-
-            showIndexs.Clear();
-            selectedIndex = -1;
-            ChessController.Action = ChessController.ChessAction.REFRESH;
-
-            //Thread.Sleep(1000);//动棋时间
+            if (index > -1)
+            {
+                chesses[index].x = x;
+                chesses[index].y = y;
+            }
         }
 
         public void changeChessOwner(int index)
@@ -126,9 +150,12 @@ namespace FiveVsFive
             if (index > -1)
             {
                 chesses[index].isMine = !chesses[index].isMine;
-                ChessController.Action = ChessController.ChessAction.REFRESH;
             }
         }
 
+        public static Chess[] directions = { 
+                 new Chess(0,1),new Chess(0,-1),new Chess(-1,0),new Chess(1,0),//上下左右
+                 new Chess(1,1),new Chess(-1,-1),new Chess(-1,1),new Chess(1,-1)//斜着
+                                             };
     }
 }
