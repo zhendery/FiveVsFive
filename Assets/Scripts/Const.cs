@@ -14,6 +14,8 @@
             OVER_CHESS = 14,
             MOVE_END=15,
 
+            NEW_TURN=20,
+
             YOUR_TURN=31,
             GAME_WIN = 32,
             GAME_LOSE = 32;

@@ -46,62 +46,59 @@ namespace FiveVsFive
             aspect = 720 / Screen.height;
         }
 
-        bool white = false;
-        public bool White { get { return white; } }
-
         static float[] index2Pos = { -2.5f, -1.3f, 0f, 1.3f, 2.5f };
-
-        public void reset()
+        public void FixedUpdate()//自动刷新
         {
-            white = !white;
-            selectIndex = -1;
-            refresh();
-        }
-
-        public void refresh()
-        {
-            Chess c = null;
-            for (int i = 0; i < 10; ++i)
+            if (RuleController.instance.isGaming)
             {
-                c = Chess10.getInstance().getChess(i);
-                chesses[i].localPosition = new Vector3(index2Pos[c.x], index2Pos[c.y]);
-                chesses[i].eulerAngles = (!(c.isMine ^ white)) ? Vector3.zero : v_pi;
+                ChessBoard board = ChessBoard.instance;
+                Chess c = null;
+
+                for (int i = 0; i < 10; ++i)
+                {
+                    c = board.getChess(i);
+                    if (c.isMoved())
+                        chesses[i].localPosition = new Vector3(index2Pos[c.x], index2Pos[c.y]);
+                    if (c.isOvered())
+                        chesses[i].eulerAngles = (!(c.isMine && RuleController.instance.meFisrt)) ? Vector3.zero : v_pi;
+                    c.setOld(c);
+                }
+                showTips();
             }
-            selectIndex = -1;
-            showTips();
         }
 
 
         static Vector3[] v_up = { new Vector3(0, 0, -1f), new Vector3(0, 0, -0.5f), new Vector3(0, 0, -0.3f), new Vector3(0, 0, -0.2f) };
 
-        int selectIndex;
-        public void upChess()
+        public void upChess(int index)
         {
-            int index = Chess10.getInstance().selectedIndex;
-            if (index > -1 )//抬起
+            if (index < 0 || index > 9)
+                return;
+            LanClient.instance.upChess(index);
+            int selected = ChessBoard.instance.selected;
+            if (index != selected)//此棋子未抬起，则将其抬起
             {
                 int upIndex = (int)((Vector2)chesses[index].localPosition).magnitude;
                 bool white = chesses[index].eulerAngles.magnitude < 1;
                 chesses[index].Translate(white ? v_up[upIndex] : -v_up[upIndex]);
                 //playAudio 抬起
-                if (selectIndex > -1)
+                if (selected > -1)//如果原来有抬起的，将其放下
                 {
-                    upIndex = (int)((Vector2)chesses[selectIndex].localPosition).magnitude;
-                    white = chesses[selectIndex].eulerAngles.magnitude < 1;
-                    chesses[selectIndex].Translate(white ? -v_up[upIndex] : v_up[upIndex]);
+                    upIndex = (int)((Vector2)chesses[selected].localPosition).magnitude;
+                    white = chesses[selected].eulerAngles.magnitude < 1;
+                    chesses[selected].Translate(white ? -v_up[upIndex] : v_up[upIndex]);
                     //playAudio 放下
                 }
+                ChessBoard.instance.selected = index;
             }
-            else//放下
+            else//此棋子已经抬起，则将其放下
             {
-                int upIndex = (int)((Vector2)chesses[selectIndex].localPosition).magnitude;
-                bool white = chesses[selectIndex].eulerAngles.magnitude < 1;
-                chesses[selectIndex].Translate(white ? -v_up[upIndex] : v_up[upIndex]);
+                int upIndex = (int)((Vector2)chesses[selected].localPosition).magnitude;
+                bool white = chesses[selected].eulerAngles.magnitude < 1;
+                chesses[selected].Translate(white ? -v_up[upIndex] : v_up[upIndex]);
                 //playAudio 放下
-                Chess10.getInstance().selectedIndex = selectIndex = -1;
+                ChessBoard.instance.selected = -1;
             }
-            selectIndex = index;
-            showTips();
         }
 
 
@@ -109,14 +106,15 @@ namespace FiveVsFive
         {
             for (int i = 0; i < 25; ++i)
                 tips[i].alpha = 0;
-            foreach (int index in Chess10.getInstance().showIndexs)
+            foreach (int index in ChessBoard.instance.getCanGo())
                 tips[index].alpha = 1;
         }
 
+        Chess oldChess;
         void OnMouseDown()
         {
-            Chess10 c = Chess10.getInstance();
-            if (c.isMyTurn)
+            ChessBoard board = ChessBoard.instance;
+            if (RuleController.instance.isMyTurn)
             {
                 centerScreen = new Vector2(Screen.width / 2, Screen.height / 2);//实际无需
                 aspect = 720f / Screen.height;//实际无需
@@ -125,7 +123,7 @@ namespace FiveVsFive
                 int index = -1;
                 for (int i = 0; i < 10; ++i)
                 {
-                    if (c.getChess(i).isMine)
+                    if (board.getChess(i).isMine)
                     {
                         Vector2 chessPos = Camera.main.WorldToScreenPoint(chesses[i].position);
                         float tempDis = Vector2.Distance(Input.mousePosition, chessPos) * aspect;
@@ -136,18 +134,18 @@ namespace FiveVsFive
                         }
                     }
                 }
-                ///////////////  index 表示点击地方是棋子还是空白
+                ///////////////  index 表示点击地方  是棋子还是空白
 
-                if (index > -1)
+                if (index > -1 && index < 10)
                 {
-                    if (c.getChess(index).isMine)//点击棋子并可操纵
-                        LocalServer.Instance.upChess(index);
+                    if (board.getChess(index).isMine)//点击棋子并可操纵
+                        upChess(index);
                 }
-                else if (selectIndex > -1)//点击空白并且已有选择棋子，则移动
+                else if (ChessBoard.instance.selected > -1)//点击空白并且已有选择棋子，则移动
                 {
                     int pos = -1;
                     minDis = 40f;
-                    foreach (int item in Chess10.getInstance().showIndexs)
+                    foreach (int item in board.getCanGo())
                     {
                         Vector2 touchPos = ((Vector2)Input.mousePosition - centerScreen) * aspect;
                         float tempDis = Vector2.Distance(touchPos, getChessBoardPos(item));
@@ -159,7 +157,8 @@ namespace FiveVsFive
                     }
                     if (pos > -1)
                     {
-                        LocalServer.Instance.move(pos);
+                        oldChess = new Chess(ChessBoard.instance.getChess(ChessBoard.instance.selected));
+                        LanClient.instance.move(pos);
                     }
                 }
             }
@@ -169,34 +168,6 @@ namespace FiveVsFive
         {
             int y = pos / 5 - 2, x = pos % 5 - 2;
             return new Vector2(x * 80, y * 80);
-        }
-
-        public enum ChessAction
-        {
-            NONE,
-            RESET,
-            REFRESH,
-            UP_CHESS,
-            SHOW_TIPS,
-        }
-        public static ChessAction Action { get; set; }
-        void Update()
-        {
-            switch (Action)
-            {
-                case ChessAction.NONE:
-                    break;
-                case ChessAction.UP_CHESS:
-                    upChess();
-                    break;
-                case ChessAction.REFRESH:
-                    refresh();
-                    break;
-                case ChessAction.RESET:
-                    reset();
-                    break;
-            }
-            Action = ChessAction.NONE;
         }
 
     }

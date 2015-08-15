@@ -185,8 +185,9 @@
     <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
     <Compile Include="Assets\Scripts\AIController.cs" />
     <Compile Include="Assets\Scripts\ButtonManager.cs" />
+    <Compile Include="Assets\Scripts\ByteArray.cs" />
+    <Compile Include="Assets\Scripts\ChessBoard.cs" />
     <Compile Include="Assets\Scripts\ChessController.cs" />
-    <Compile Include="Assets\Scripts\Chess10.cs" />
     <Compile Include="Assets\Scripts\Const.cs" />
     <Compile Include="Assets\Scripts\LanClient.cs" />
     <Compile Include="Assets\Scripts\LanServer.cs" />

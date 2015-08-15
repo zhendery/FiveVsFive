@@ -9,7 +9,7 @@ using System.Timers;
 
 namespace FiveVsFive
 {
-    public class LanServer : LanManager<LanServer>, IHost
+    public class LanServer : LanManager<LanServer>
     {
         public void startServer()
         {
@@ -31,8 +31,8 @@ namespace FiveVsFive
         void SocketConnected(IAsyncResult ar)
         {
             sock = (ar.AsyncState as Socket).EndAccept(ar);
-            LocalServer.Instance = this;
-            rule = new RuleController();
+            //LocalServer.Instance = this;
+            //rule = new RuleController();
             state = true;
         }
 
@@ -61,17 +61,17 @@ namespace FiveVsFive
             switch (action)
             {
                 case Const.UP_CHESS:
-                    rule.upChess(9 - indexs[0]);
+                    //rule.upChess(9 - indexs[0]);
                     break;
                 case Const.MOVE_CHESS:
-                    rule.moveChess(24 - indexs[0], false);
+//                    rule.moveChess(24 - indexs[0], false);
                     break;
                 case Const.YOUR_TURN:
-                    Chess10.getInstance().isMyTurn = true;
+                    //Chess10.getInstance().isMyTurn = true;
                     break;
                 case Const.OVER_CHESS:
                     foreach (int index in indexs)
-                        rule.changeOwner(9-index);
+                     ;//   rule.changeOwner(9-index);
                     break;
             }
         }
@@ -81,7 +81,7 @@ namespace FiveVsFive
         }
         public void upChess(int index)
         {
-            rule.upChess(index);
+            //rule.upChess(index);
         }
         public void showTips(int[] indexs)
         {
@@ -89,7 +89,7 @@ namespace FiveVsFive
         }
         public void move(int pos)
         {
-            rule.moveChess(pos, true);
+            //rule.moveChess(pos, true);
         }
         public void move(int index,int pos)
         {
@@ -101,7 +101,7 @@ namespace FiveVsFive
         public void changeOner(int[] indexs)
         {
             foreach (int index in indexs)
-                rule.changeOwner(index);
+                ;// rule.changeOwner(index);
             sendMessage(Const.OVER_CHESS, indexs);
         }
 

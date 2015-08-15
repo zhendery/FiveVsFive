@@ -1,61 +1,80 @@
-﻿using System.Threading;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
+
 namespace FiveVsFive
 {
-    public interface IHost
+    class Server
     {
-        void upChess(int index);
-        void move(int pos);
-        void move(int index,int pos);
-        void moveEnd();
-        void showTips(int[] indexs);
-        void changeOner(int[] indexs);
-        void yourTurn();
+        protected bool isRunning;
+        protected Socket sock;
 
-    }
+        public Server()
+        {
+            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        }
+        public void start(string ip)
+        {
+            IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
+            sock.Bind(endP);
+            sock.Listen(1);
 
-    public class LocalServer : IHost
-    {
-        public static IHost Instance;
-        static LocalServer server;
-        public static LocalServer getInstance()
-        {
-            if (server == null)
-                server = new LocalServer();
-            return server;
+            sock.BeginAccept(new AsyncCallback(accepted), sock);
         }
+        protected void accepted(IAsyncResult iar)
+        {
+            Socket client = (Socket)iar.AsyncState;
+            sock = client.EndAccept(iar);
+            isRunning = true;
 
-        RuleController rule;
-        public LocalServer()
-        {
-            rule = new RuleController();
+            new Thread((ThreadStart)recieveMsg).Start();
         }
-        public void startServer()
+        protected void recieveMsg()
         {
-            Instance = this;
-            rule.newTurn();
-            AIController.getInstance().reset(rule.getChessBoard());
+            while (isRunning)
+            {
+                if (sock.Available > 0)
+                {
+                    byte[] buffer=new byte[sock.Available];
+                    sock.Receive(buffer);
+                    ByteArray msg = new ByteArray();
+                    msg.write(buffer);
+                    handleMsg(msg);
+                }
+                Thread.Sleep(50);
+            }
+            sock.Close();
         }
-
-        public void yourTurn()
+        protected virtual void handleMsg(ByteArray msg) { }
+        protected void sendMsg(ByteArray msg)
         {
-            AIController.getInstance().move();
-        }
-        public void upChess(int index)
-        {
-            rule.upChess(index);
-        }
-        public void showTips(int[] indexs) { }
-        public void move(int pos)
-        {
-            rule.moveChess(pos,true);
-        }
-        public void move(int index, int pos) { }
-        public void moveEnd() { }
-        public void changeOner(int[] indexs)
-        {
-            foreach(int index in indexs)
-                rule.changeOwner(index);
+            byte[] bits = msg.encode();
+            sock.Send(bits);
         }
     }
 
+    class LocalServer : Server
+    {
+        protected override void handleMsg(ByteArray msg)
+        {
+            byte action = msg.readByte();
+            ByteArray newMsg = new ByteArray();
+            switch (action)
+            {
+                case Const.NEW_TURN://新一轮游戏
+                    newMsg.write(Const.NEW_TURN);
+                    sendMsg(msg);
+                    break;
+                //case Const.UP_CHESS: 不用处理，因为电脑不需要知道你抬起了哪一个棋子
+                case Const.MOVE_CHESS:
+                    sendMsg(msg);
+                    break;
+            }
+        }
+
+    }
 }

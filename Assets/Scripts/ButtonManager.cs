@@ -24,14 +24,18 @@ namespace FiveVsFive
             switch (button.name)
             {
                 case "reset":
-                    label.text = "by myself";
-                    LocalServer.getInstance().startServer();
+                    string localIP="127.0.0.1";
+                    LocalServer server = new LocalServer();
+                    server.start(localIP);
+
+                    LanClient.instance.start(localIP);
+                    LanClient.instance.newTurn();
                     break;
                 case "server":
                     LanServer.getInstance().startServer();
                     break;
                 case "client":
-                    LanClient.getInstance().startClient();
+                    LanClient.instance.start("");
                     break;
                 case "quit":
                     Application.Quit();

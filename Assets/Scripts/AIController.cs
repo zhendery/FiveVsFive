@@ -30,7 +30,7 @@
         {
 
 
-            Chess10.getInstance().isMyTurn = true;//ai走完了
+            //Chess10.getInstance().isMyTurn = true;//ai走完了
         }
     }
 }
