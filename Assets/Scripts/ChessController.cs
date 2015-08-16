@@ -53,20 +53,48 @@ namespace FiveVsFive
             {
                 ChessBoard board = ChessBoard.instance;
                 Chess c = null;
-
                 for (int i = 0; i < 10; ++i)
                 {
                     c = board.getChess(i);
                     if (c.isMoved())
-                        chesses[i].localPosition = new Vector3(index2Pos[c.x], index2Pos[c.y]);
+                    {
+                        StartCoroutine(moveAction(c.x, c.y, i));
+                        board.checkJaTiao(i);
+                    }
                     if (c.isOvered())
-                        chesses[i].eulerAngles = (!(c.isMine && RuleController.instance.meFisrt)) ? Vector3.zero : v_pi;
+                    {
+                        StartCoroutine(overAction(c.isMine, i));
+                        board.checkJaTiao(i);
+                    }
                     c.setOld(c);
                 }
                 showTips();
+                checkEndGame();
             }
         }
 
+        IEnumerator moveAction(int x, int y, int index)
+        {
+            Vector3 newPos = new Vector3(index2Pos[x], index2Pos[y]);
+            Vector3 velocity = (newPos - chesses[index].localPosition) / 10.0f;
+            WaitForSeconds time = new WaitForSeconds(0.01f);
+            for (int i = 0; i < 10; ++i)//0.1秒移动
+            {
+                chesses[index].Translate(velocity, Space.World);
+                yield return time;
+            }
+        }
+        IEnumerator overAction(bool isMine, int index)
+        {
+            Vector3 newEuler = (!(isMine && RuleController.instance.meFisrt)) ? Vector3.zero : v_pi;
+            Vector3 velocity = (newEuler - chesses[index].eulerAngles) / 10.0f;
+            WaitForSeconds time = new WaitForSeconds(0.01f);
+            for (int i = 0; i < 10; ++i)//0.1秒旋转
+            {
+                chesses[index].Rotate(velocity);
+                yield return time;
+            }
+        }
 
         static Vector3[] v_up = { new Vector3(0, 0, -1f), new Vector3(0, 0, -0.5f), new Vector3(0, 0, -0.3f), new Vector3(0, 0, -0.2f) };
 
@@ -114,7 +142,7 @@ namespace FiveVsFive
         void OnMouseDown()
         {
             ChessBoard board = ChessBoard.instance;
-            if (RuleController.instance.isMyTurn)
+            if (RuleController.instance.isMyTurn == GameState.MY_TURN)
             {
                 centerScreen = new Vector2(Screen.width / 2, Screen.height / 2);//实际无需
                 aspect = 720f / Screen.height;//实际无需
@@ -161,6 +189,15 @@ namespace FiveVsFive
                         LanClient.instance.move(pos);
                     }
                 }
+            }
+        }
+
+        public void checkEndGame()
+        {
+            if (RuleController.instance.gameRes != GameRes.NO_WIN)
+            {
+                UILabel lable = GameObject.Find("Label").GetComponent<UILabel>();
+                lable.text = RuleController.instance.gameRes == GameRes.ME_WIN ? "你赢了" : "对手赢了";
             }
         }
 

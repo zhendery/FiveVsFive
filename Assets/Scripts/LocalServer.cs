@@ -39,7 +39,7 @@ namespace FiveVsFive
             {
                 if (sock.Available > 0)
                 {
-                    byte[] buffer=new byte[sock.Available];
+                    byte[] buffer = new byte[sock.Available];
                     sock.Receive(buffer);
                     ByteArray msg = new ByteArray();
                     msg.write(buffer);
@@ -72,6 +72,12 @@ namespace FiveVsFive
                 //case Const.UP_CHESS: 不用处理，因为电脑不需要知道你抬起了哪一个棋子
                 case Const.MOVE_CHESS:
                     sendMsg(msg);
+                    break;
+                case Const.YOUR_TURN:
+                    sendMsg(msg);
+                    Thread.Sleep(500);//让夹挑飞一会
+                    if (RuleController.instance.isMyTurn==GameState.YOUT_TURN)
+                        AIController.instance.move();
                     break;
             }
         }

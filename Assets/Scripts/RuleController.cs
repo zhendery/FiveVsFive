@@ -7,7 +7,9 @@ namespace FiveVsFive
         public static RuleController instance = new RuleController();
 
         ChessBoard board;
-        public bool meFisrt,isMyTurn,isGaming;
+        public bool meFisrt, isGaming;
+        public GameState isMyTurn;
+        public GameRes gameRes;
         public RuleController()
         {
             this.board = ChessBoard.instance;
@@ -15,60 +17,65 @@ namespace FiveVsFive
             isGaming = false;
         }
 
-        public void newTurn()
+        public void reset()
         {
             isGaming = true;
             meFisrt = !meFisrt;
             board.reset();
 
-            isMyTurn = meFisrt;
+            isMyTurn = meFisrt ? GameState.MY_TURN : GameState.YOUT_TURN;
+            gameRes = GameRes.NO_WIN;
         }
-        //int[] ja(int index)
-        //{
-        //    List<int> res = new List<int>();
-        //    Chess c = board.getChess(index);
-        //    for (int i = 0; i < 8; ++i)
-        //    {
-        //        Chess c2 = c + ChessBoard.directions[i] * 2,
-        //            c1 = c + directions[i];
-
-        //        if (c2.outBoard() || c1.outBoard() || chessBoard[c2.x][c2.y] == -1 || chessBoard[c1.x][c1.y] == -1)
-        //            continue;
-
-        //        if (Chess10.getInstance().getChess(chessBoard[c2.x][c2.y]).isMine == c.isMine
-        //            && Chess10.getInstance().getChess(chessBoard[c1.x][c1.y]).isMine != c.isMine)
-
-        //            res.Add(chessBoard[c1.x][c1.y]);
-        //    }
-        //    return res.ToArray();
-        //}
-
-        //int[] tiao(int index)
-        //{
-        //    List<int> res = new List<int>();
-        //    Chess c = Chess10.getInstance().getChess(index);
-        //    for (int i = 0; i < 8; i += 2)
-        //    {
-        //        Chess cL = c + directions[i],
-        //            cR = c + directions[i + 1];
-
-        //        if (cL.outBoard() || cR.outBoard() || chessBoard[cL.x][cL.y] == -1 || chessBoard[cR.x][cR.y] == -1)
-        //            continue;
-
-        //        if (Chess10.getInstance().getChess(chessBoard[cL.x][cL.y]).isMine != c.isMine
-        //            && Chess10.getInstance().getChess(chessBoard[cR.x][cR.y]).isMine != c.isMine)
-        //        {
-        //            res.Add(chessBoard[cL.x][cL.y]);
-        //            res.Add(chessBoard[cR.x][cR.y]);
-        //        }
-        //    }
-        //    return res.ToArray();
-        //}
-        
-
-        bool isWin()
+        public void yourTurn()
         {
-            return false;
+            GameState oldState = isMyTurn;
+            Thread.Sleep(400);
+
+            checkIsWin(oldState);//在夹挑飞完之后判断输赢
+
+            isMyTurn = oldState == GameState.YOUT_TURN ? GameState.MY_TURN : GameState.YOUT_TURN;
+        }
+
+        void checkIsWin(GameState whoseTurn)
+        {
+            GameRes res = GameRes.NO_WIN, resPre = GameRes.NO_WIN;
+            bool yourTurn = false;
+            if (whoseTurn == GameState.MY_TURN)
+            {
+                resPre = GameRes.ME_WIN;
+                yourTurn = false;
+            }
+            else if (whoseTurn == GameState.YOUT_TURN)
+            {
+                resPre = GameRes.YOU_WIN;
+                yourTurn = true;
+            }
+
+            //判断输赢
+            //1、没子的情况
+            if (board.getChesses(yourTurn).Length == 0)//yourTurn在我方回合时是false，此时只需判断对方棋子看他是否输
+                res = resPre;
+            //2、对方无棋可走时
+            bool canGo = false;
+            foreach (int index in board.getChesses(yourTurn))
+            {
+                if (board.getCanGo(index).Length > 0)
+                {
+                    canGo = true;
+                    break;
+                }
+            }
+            if (!canGo)
+                res = resPre;
+            //判断结束，如果有人赢就终止游戏
+
+            if (res != GameRes.NO_WIN)
+            {
+                isMyTurn = GameState.NO_TURN;
+                gameRes = res;
+            }
         }
     }
+    public enum GameRes { NO_WIN, ME_WIN, YOU_WIN };
+    public enum GameState { NO_TURN, MY_TURN, YOUT_TURN };
 }

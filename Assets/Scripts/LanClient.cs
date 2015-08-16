@@ -88,11 +88,14 @@ namespace FiveVsFive
             switch (action)
             {
                 case Const.NEW_TURN:
-                    RuleController.instance.newTurn();
+                    RuleController.instance.reset();
                     break;
                 case Const.MOVE_CHESS:
                     int pos = msg.readInt();
                     ChessBoard.instance.moveChess(pos);
+                    break;
+                case Const.YOUR_TURN:
+                    RuleController.instance.yourTurn();
                     break;
             }
         }
@@ -106,7 +109,9 @@ namespace FiveVsFive
 
         public void yourTurn()
         {
-            //sendMessage(Const.YOUR_TURN);
+            ByteArray msg = new ByteArray();
+            msg.write(Const.YOUR_TURN);
+            sendMsg(msg);
         }
         public void upChess(int index)
         {
@@ -121,10 +126,6 @@ namespace FiveVsFive
             msg.write(Const.MOVE_CHESS);
             msg.write(pos);
             sendMsg(msg);
-        }
-        public void moveEnd()
-        {
-            yourTurn();
         }
         void sendMsg(ByteArray msg)
         {

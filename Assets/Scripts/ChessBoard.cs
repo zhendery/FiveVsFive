@@ -103,12 +103,12 @@ namespace FiveVsFive
         {
             return x > -1 && x < 5 && y > -1 && y < 5 ? chesses[locations[x][y]] : null;
         }
-        public Chess[] getChesses(bool my)
+        public int[] getChesses(bool my)
         {
-            List<Chess> temp = new List<Chess>();
-            foreach (Chess c in chesses)
-                if (c.isMine == my)
-                    temp.Add(c);
+            List<int> temp = new List<int>();
+            for(int i=0;i<10;++i)
+                if (chesses[i].isMine == my)
+                    temp.Add(i);
 
             return temp.ToArray();
         }
@@ -123,10 +123,14 @@ namespace FiveVsFive
         }
         public int[] getCanGo()
         {
+            return getCanGo(selected);
+        }
+        public int[] getCanGo(int index)//此函数尽量少用，在规则判断可以用
+        {
             List<int> list = new List<int>();
-            if (selected > -1 && selected < 10)
+            if (index > -1 && index < 10)
             {
-                Chess selectedChess = chesses[selected];
+                Chess selectedChess = chesses[index];
                 int dirCount = selectedChess.x % 2 == selectedChess.y % 2 ? 8 : 4;//一奇一偶的只可走上下左右
 
                 for (int i = 0; i < dirCount; ++i)
@@ -172,13 +176,71 @@ namespace FiveVsFive
                 chesses[selected].y = pos / 5;
                 locations[chesses[selected].x][chesses[selected].y] = selected;
                 selected = -1;
+
+                LanClient.instance.yourTurn();
             }
         }
 
         public void changeChessOwner(int index)
         {
             if (index > -1 && index < 10)
+            {
+                chesses[index].setOld(chesses[index]);
                 chesses[index].isMine = !chesses[index].isMine;
+            }
+        }
+        public void checkJaTiao(int index)
+        {
+            int[] tiaoRes = tiao(index);
+            foreach (int r in tiaoRes)
+                changeChessOwner(r);
+
+            int[] jaRes = ja(index);
+            foreach (int r in jaRes)
+                changeChessOwner(r);
+
+        }
+
+        int[] ja(int index)
+        {
+            List<int> res = new List<int>();
+            Chess c = chesses[index];
+            for (int i = 0; i < 8; ++i)
+            {
+                Chess c2 = c + ChessBoard.directions[i] * 2,//八个方向上的第2颗棋子，应是同色
+                    c1 = c + directions[i];//第1颗棋子，应是异色，两个条件同时满足，则形成“夹”
+
+                if (c2.outBoard() || c1.outBoard() || locations[c2.x][c2.y] == -1 || locations[c1.x][c1.y] == -1)
+                    continue;
+
+                if (chesses[locations[c2.x][c2.y]].isMine == c.isMine
+                    && chesses[locations[c1.x][c1.y]].isMine != c.isMine)
+
+                    res.Add(locations[c1.x][c1.y]);//被夹的棋子索引
+            }
+            return res.ToArray();
+        }
+
+        int[] tiao(int index)
+        {
+            List<int> res = new List<int>();
+            Chess c = chesses[index];
+            for (int i = 0; i < 8; i += 2)
+            {
+                Chess cL = c + directions[i],
+                    cR = c + directions[i + 1];
+
+                if (cL.outBoard() || cR.outBoard() || locations[cL.x][cL.y] == -1 || locations[cR.x][cR.y] == -1)
+                    continue;
+
+                if (chesses[locations[cL.x][cL.y]].isMine != c.isMine
+                    && chesses[locations[cR.x][cR.y]].isMine != c.isMine)
+                {
+                    res.Add(locations[cL.x][cL.y]);
+                    res.Add(locations[cR.x][cR.y]);
+                }
+            }
+            return res.ToArray();
         }
 
         public static Chess[] directions = { 

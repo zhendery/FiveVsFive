@@ -51,7 +51,7 @@ namespace FiveVsFive
             sockCon.Close();
             sockCon = null;
 
-            rule.newTurn();
+            rule.reset();
             recTH = new Thread((ThreadStart)recieveMessage);
             recTH.Start();
         }

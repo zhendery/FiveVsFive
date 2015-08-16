@@ -1,36 +1,28 @@
-﻿namespace FiveVsFive
+﻿using System;
+using System.Threading;
+namespace FiveVsFive
 {
     public class AIController
     {
-        static AIController ai;
-        public static AIController getInstance()
-        {
-            if (ai == null)
-                ai = new AIController();
-            return ai;
-        }
-
-        int[][] chessBoard;
+        public static AIController instance=new AIController();
+        ChessBoard board;
         public AIController()
         {
-            chessBoard = new int[5][];
-            for (int i = 0; i < 5; ++i)
-                chessBoard[i] = new int[5];
-        }
-
-
-        public void reset(int[][] c)
-        {
-            for (int i = 0; i < 5; ++i)
-                for (int j = 0; j < 5; ++j)
-                    chessBoard[i][j] = c[i][j];
+            board = ChessBoard.instance;
         }
 
         public void move()
         {
+            Random ran = new Random(DateTime.Now.Millisecond);
+            int[] myChesses = board.getChesses(false);
 
+            board.selected = myChesses[ ran.Next(myChesses.Length)];
+            int[] canGo = board.getCanGo();
 
-            //Chess10.getInstance().isMyTurn = true;//ai走完了
+            int step = canGo[ran.Next(canGo.Length)];
+            board.moveChess(step);
+
+            LanClient.instance.yourTurn();//AI走完了
         }
     }
 }
