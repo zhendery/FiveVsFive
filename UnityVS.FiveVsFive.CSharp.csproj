@@ -183,18 +183,16 @@
     <Compile Include="Assets\NGUI\Scripts\UI\UITexture.cs" />
     <Compile Include="Assets\NGUI\Scripts\UI\UITooltip.cs" />
     <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
-    <Compile Include="Assets\Scripts\Drawable\welcomeButtons.cs" />
-    <Compile Include="Assets\Scripts\Drawable\ChessController.cs" />
-    <Compile Include="Assets\Scripts\Drawable\TimeUpdate.cs" />
-    <Compile Include="Assets\Scripts\Drawable\gameButtons.cs" />
-    <Compile Include="Assets\Scripts\Game\AIController.cs" />
-    <Compile Include="Assets\Scripts\Game\ChessBoard.cs" />
-    <Compile Include="Assets\Scripts\Game\RuleController.cs" />
-    <Compile Include="Assets\Scripts\Network\ByteArray.cs" />
-    <Compile Include="Assets\Scripts\Network\Const.cs" />
-    <Compile Include="Assets\Scripts\Network\LanClient.cs" />
-    <Compile Include="Assets\Scripts\Network\LanServer.cs" />
-    <Compile Include="Assets\Scripts\Network\LocalServer.cs" />
+    <Compile Include="Assets\Scripts\AIController.cs" />
+    <Compile Include="Assets\Scripts\ButtonManager.cs" />
+    <Compile Include="Assets\Scripts\ByteArray.cs" />
+    <Compile Include="Assets\Scripts\ChessBoard.cs" />
+    <Compile Include="Assets\Scripts\ChessController.cs" />
+    <Compile Include="Assets\Scripts\Const.cs" />
+    <Compile Include="Assets\Scripts\LanClient.cs" />
+    <Compile Include="Assets\Scripts\LanServer.cs" />
+    <Compile Include="Assets\Scripts\LocalServer.cs" />
+    <Compile Include="Assets\Scripts\RuleController.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Materials\CustomSpecular.shader" />
