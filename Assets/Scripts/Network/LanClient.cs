@@ -5,135 +5,38 @@ using System.Threading;
 using System.Text;
 using System.Collections.Generic;
 using System;
+using System.Net.NetworkInformation;
 
 namespace FiveVsFive
 {
     public class LanClient
     {
-        public bool isRunning;
-        Socket sock;
-        public static LanClient instance = new LanClient();
         public LanClient()
         {
-            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            //网络相关初始化
+            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             isRunning = false;
+            Random ran = new Random(DateTime.Now.Millisecond);
+
+            //游戏相关初始化
+            myLogo = ran.Next(6);
+            myName = names[ran.Next(names.Length)];
+            whoseTurn = GameState.NO_TURN;
+            isGaming = false;
+            myColor = false;
+            board = ChessBoard.instance;
         }
 
-        public void startLocal()//纯本地
-        {
-            start("127.0.0.1");
-        }
-        public void startWithIP(string ip)//含服务端的本地，或者手动输入ip
-        {
-            start(ip);
-        }
+#region 和游戏内容相关的，包括各种收到来自服务端的Action后应该怎么处理，以及微量数据
+        string[] names = { "zhendery", "tommy", "Alice", "你猜我是谁", "哈哈哈" };
 
-        public int myLogo=1, yourLogo;
-        public string myName="zhendery", yourName;
-        public void startLan()//局域网客户端，首先开始广播自己
-        {
-            new Thread((ThreadStart)sendBroadcast).Start();
-        }
+        public int myLogo, yourLogo = -1;
+        public string myName, yourName = "";
+        public GameState whoseTurn;
+        public GameRes gameRes;
+        public bool isGaming,myColor;//myColor表示我是黑还是白，黑棋先走
+        ChessBoard board;
 
-        void sendBroadcast()
-        {
-            Socket sockCon = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            sockCon.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
-            IPEndPoint broad = new IPEndPoint(IPAddress.Broadcast, Const.PORT);
-
-            ByteArray msg = new ByteArray();
-            msg.write(myLogo);//头像索引
-            msg.write(myName);//名字
-            byte[] msgBits = msg.encode();
-
-            bool state = false;
-            while (!state)
-            {
-                sockCon.SendTo(msgBits, broad);
-                Thread.Sleep(50);
-                if (sockCon.Available > 0)//边广播边接收，收到对方消息
-                {
-                    //解析头像等 与 ip
-                    ByteArray msgRec = new ByteArray();
-                    byte[] recBits = new byte[sockCon.Available];
-                    msgRec.decode(recBits);
-                    yourLogo = msgRec.readInt();
-                    yourName = msgRec.readString();
-
-                    startWithIP(msgRec.readString());
-                    msgRec.Close();
-
-                    state = true;
-                }
-            }
-            sockCon.Close();
-            sockCon = null;
-        }
-        void start(string ip)
-        {
-            IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
-            sock.BeginConnect(endP, new AsyncCallback(connected), sock);
-        }
-        protected void connected(IAsyncResult iar)
-        {
-            sock = (Socket)iar.AsyncState;
-            try
-            {
-                sock.EndConnect(iar);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return;
-            }
-            isRunning = true;
-
-            newTurn();
-            new Thread((ThreadStart)recieveMsg).Start();
-        }
-        void recieveMsg()
-        {
-            while (isRunning)
-            {
-                if (sock.Available > 0)
-                {
-                    byte[] buffer = new byte[sock.Available];
-                    sock.Receive(buffer);
-                    ByteArray msg = new ByteArray();
-                    msg.decode(buffer);
-                    handleMsg(msg);
-                }
-                Thread.Sleep(50);
-            }
-            sock.Shutdown(SocketShutdown.Both);
-            sock.Close();
-        }
-        void tryConnect()
-        {
-            try
-            {
-                Socket sockConnect = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                sockConnect.Bind(new IPEndPoint(IPAddress.Any, Const.PORT));
-                byte[] rec = new byte[Const.MAX_MSG_LEN];
-                IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
-                EndPoint senderRemote = (EndPoint)sender;
-                sockConnect.ReceiveFrom(rec, ref senderRemote);
-
-                sockConnect.Close();
-                sockConnect = null;
-
-                //sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                //sock.Connect(new IPEndPoint(((IPEndPoint)senderRemote).Address, Const.PORT));
-
-                //Chess10.getInstance().reset();
-                // recTH = new Thread((ThreadStart)recieveMessage);
-                //recTH.Start();
-
-                // state = true;
-
-            }
-            catch { }
-        }
         void handleMsg(ByteArray msg)
         {
             ByteArray newMsg = new ByteArray();
@@ -147,34 +50,36 @@ namespace FiveVsFive
                     sendMsg(newMsg);
                     break;
                 case Const.NEW_TURN:
-                    RuleController.instance.reset();
+                    bool isMyTurn = msg.readBool();
+                    newTurn(isMyTurn);
+                    break;
+                case Const.UP_CHESS:
+                    board.chessUp = msg.readInt();
                     break;
                 case Const.MOVE_CHESS:
                     int pos = msg.readInt();
-                    ChessBoard.instance.moveChess(pos);
+                    board.moveChess(pos);
                     break;
-                case Const.YOUR_TURN:
-                    RuleController.instance.yourTurn();
+                case Const.YOUR_TURN://就是轮到我了
+                    whoseTurn = GameState.MY_TURN;
+                    //想想怎么变换箭头以及闪烁棋子
+                    break;
+                case Const.END_GAME://有人赢了
+                    gameRes = (GameRes)msg.readInt();//将以int形式发送过来的比赛结果存入gameRes以供检测
                     break;
             }
             msg.Close();
         }
-
-        public void newTurn()
+        void newTurn(bool isMyTurn)
         {
-            ByteArray msg = new ByteArray();
-            msg.write(Const.NEW_TURN);
-            sendMsg(msg);
-        }
-
-        public void yourTurn()
-        {
-            ByteArray msg = new ByteArray();
-            msg.write(Const.YOUR_TURN);
-            sendMsg(msg);
+            this.whoseTurn = isMyTurn ? GameState.MY_TURN : GameState.YOUT_TURN;
+            myColor = isMyTurn;
+            board.reset();
+            isGaming = true;
         }
         public void upChess(int index)
         {
+            board.chessUp = index;
             ByteArray msg = new ByteArray();
             msg.write(Const.UP_CHESS);
             msg.write(index);
@@ -182,6 +87,7 @@ namespace FiveVsFive
         }
         public void move(int pos)
         {
+            board.moveChess(pos);
             ByteArray msg = new ByteArray();
             msg.write(Const.MOVE_CHESS);
             msg.write(pos);
@@ -190,7 +96,7 @@ namespace FiveVsFive
         void sendMsg(ByteArray msg)
         {
             byte[] bits = msg.encode();
-            sock.Send(bits);
+            client.Send(bits);
             msg.Close();
         }
         public void changeOner(int[] indexs)
@@ -198,6 +104,129 @@ namespace FiveVsFive
             // foreach (int index in indexs)
             //    chessBoard.changeChessOwner(index);
             //sendMessage(Const.OVER_CHESS, indexs);
+        }
+#endregion
+
+#region “网络”相关都在这里，想折起来，和游戏相关的分开
+        public bool isRunning;
+        Socket client;
+        public static LanClient instance = new LanClient();//每个设备总会有且只有一个客户端
+
+        public void startLocal()//纯本地，与lcoalServer通讯
+        {
+            start("127.0.0.1");
+        }
+        public void startServer()//server端的客户端，与自己的ip通讯
+        {
+            start(getLanIP());
+        }
+        public void startLan()//局域网远程端的客户端，首先检测正在广播的服务端，然后根据其ip进行连接
+        {
+            StateObject state = new StateObject();
+            state.sock.BeginReceiveFrom(state.buffer, 0, state.buffer.Length, SocketFlags.None,
+                ref state.senderRemote, new AsyncCallback(
+                    delegate(IAsyncResult iar)//检测到正在广播的服务端
+                    {
+                        state = (StateObject)iar.AsyncState;
+                        try
+                        {
+                            state.sock.EndReceiveFrom(iar, ref state.senderRemote);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            return;
+                        }
+                        state.sock.Close();//关闭检测广播的sock
+
+                        IPAddress ipAdd = ((IPEndPoint)state.senderRemote).Address;//取出服务端的ip,进行连接
+                        start(ipAdd.ToString());
+                    }
+            ), state);
+        }
+        void start(string ip)//客户端与服务器连接的入口，所有start均从此入口进入
+        {
+            IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
+            client.BeginConnect(endP, new AsyncCallback(connected), client);
+        }
+        protected void connected(IAsyncResult iar)
+        {
+            client = (Socket)iar.AsyncState;
+            try
+            {
+                client.EndConnect(iar);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return;
+            }
+            isRunning = true;
+
+            new Thread((ThreadStart)recieveMsg).Start();
+        }
+        void recieveMsg()
+        {
+            while (isRunning)
+            {
+                if (client.Available > 0)
+                {
+                    byte[] buffer = new byte[client.Available];
+                    client.Receive(buffer);
+                    ByteArray msg = new ByteArray();
+                    msg.decode(buffer);
+                    handleMsg(msg);
+                }
+                Thread.Sleep(50);
+            }
+            client.Shutdown(SocketShutdown.Both);
+            client.Close();
+        }
+        public string getLanIP()
+        {
+#if UNITY_EDITOR
+            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (NetworkInterface adapter in nics)
+            {
+                if (adapter.Name == "WLAN")//判断是否是无线
+                {
+                    IPInterfaceProperties ip = adapter.GetIPProperties();     //IP配置信息
+                    foreach (UnicastIPAddressInformation add in ip.UnicastAddresses)
+                    {
+                        if (add.Address.AddressFamily == AddressFamily.InterNetwork)
+                            return add.Address.ToString();
+                    }
+                }
+            }
+#elif  UNITY_ANDROID
+            IPAddress[] adds = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
+            foreach (IPAddress ip in adds)
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    return ip.ToString();
+#else
+            
+#endif
+            return null;
+        }
+#endregion
+        
+    }
+
+
+    class StateObject
+    {
+        public byte[] buffer;
+        public EndPoint senderRemote;
+        public Socket sock;
+
+        public StateObject()
+        {
+            buffer = new byte[Const.MAX_MSG_LEN];
+            IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+            senderRemote = (EndPoint)sender;
+
+            sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            sock.Bind(new IPEndPoint(IPAddress.Any, Const.PORT));
         }
     }
 }

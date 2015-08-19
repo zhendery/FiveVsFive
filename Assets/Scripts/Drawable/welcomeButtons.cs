@@ -42,16 +42,17 @@ namespace FiveVsFive
                     break;
                 case "friend"://挑战朋友 -->选择哪种朋友
                     setSceneOld(GameScenes.CHOOSE_FRIEND);
-                    StartCoroutine(showButtons(null));
+                    StartCoroutine(showButtons());
                     break;
                 case "search"://搜寻附近朋友 -->进入搜寻界面
                     setSceneOld(GameScenes.SEARCHING_FRIEND);
-                    StartCoroutine(showButtons(null));
+                    StartCoroutine(showButtons());
 
                     LanServer lanServer = new LanServer();
                     lanServer.start();
 
-                    LanClient.instance.startLan();
+                    LanClient.instance.startServer();
+                    StartCoroutine(whenStart());
                     break;
                 case "wlan"://挑战远程朋友 -->开启远程服务，出现分享信息与按钮，等待加入
                     break;
@@ -59,14 +60,16 @@ namespace FiveVsFive
                     Debug.Log("hepl");
                     break;
                 case "clientLan"://加入附近朋友 -->开启局域网客户端
-                    //LanClient.instance.start("");
+                    LanClient.instance.startLan();
+                    setSceneOld(GameScenes.JOIN_FRIEND);
+                    StartCoroutine(showButtons());
+
+                    StartCoroutine(whenStart());
                     break;
                 case "clientWlan"://加入远程朋友 -->文本框，输入确定后开启远程客户端
                     break;
                 case "commitWlan"://确定
                     //LanClient.instance.start("");
-                    break;
-                case "confirmFriend"://确定朋友
                     break;
                 default:
                     Debug.Log("no button!!");
@@ -76,7 +79,7 @@ namespace FiveVsFive
 
         void hideShowWel()
         {
-            StartCoroutine(hideShowWels());
+            
         }
         IEnumerator hideShowWels()
         {//要在0.5秒内移动掉960 ，也就是在50步移动掉
@@ -93,7 +96,7 @@ namespace FiveVsFive
         }
         delegate void CallFunc();
         GameScenes oldScene, gameScene;
-        IEnumerator showButtons(CallFunc call)
+        IEnumerator showButtons()
         {
             WaitForSeconds time = new WaitForSeconds(0.05f);
             short s1 = 0, s2 = 0, e1 = 0, e2 = 0;
@@ -108,14 +111,18 @@ namespace FiveVsFive
             }
             if (oldScene == GameScenes.GAME_SCENE && gameScene == GameScenes.WELCOME)
             {//从游戏界面离开
+
+                //因为从游戏界面回到欢迎界面，所以要合起来
+                StartCoroutine(hideShowWels());
                 s1 = e1 = 0; s2 = 0; e2 = 3;
             }
             if (oldScene == GameScenes.WELCOME && gameScene == GameScenes.GAME_SCENE)
-            {//从游戏界面离开
+            {//从欢迎界面进入游戏界面
                 s1 = 0; e1 = 3; s2 = e2 = 0;
             }
-            if (gameScene == GameScenes.SEARCHING_FRIEND)
+            if (gameScene == GameScenes.SEARCHING_FRIEND || gameScene == GameScenes.JOIN_FRIEND)
             {//只可能是从选朋友界面到的
+                showFriend();//
                 s1 = 3; e1 = 7; s2 = e2 = 0;
             }
 
@@ -129,10 +136,46 @@ namespace FiveVsFive
                 StartCoroutine(hideShowBtn(buttons[i].transform, false));//将显示的按钮们
                 yield return time;
             }
-            if (call != null)//回调函数，可以在动画结束后做些什么，比如显示其他东西
-                call();
+            if (gameScene == GameScenes.GAME_SCENE)
+            {
+                if (oldScene == GameScenes.SEARCHING_FRIEND || oldScene == GameScenes.JOIN_FRIEND)
+                    showFriend();//如果从搜寻朋友界面进入，则要隐藏
+                //不论从什么界面进入游戏界面，均要将其打开
+                StartCoroutine(hideShowWels());
+            }
         }
+        void showFriend()
+        {
+            GameObject showFriend = transform.FindChild("showFriend").gameObject;
+            string title = "",tip="";
+            if (gameScene == GameScenes.SEARCHING_FRIEND)
+            {
+                title = "正在搜索附近好友，请稍后...";
+                tip = "“加入附近好友”";
+            }
+            else if (gameScene == GameScenes.JOIN_FRIEND)
+            {
+                title = "正在加入附近好友，请稍后...";
+                tip = "搜寻附近好友";
+            }
+            else
+            {
+                showFriend.SetActive(false);
+                return;
+            }
+            tip = "请保证您和您的好友处在同一网段中，并请您的好友依次选择“挑战好友”--" + tip;
+            showFriend.SetActive(true);
+            UILabel titleLabel = showFriend.transform.FindChild("title").GetComponent<UILabel>(),
+                tipLabel = showFriend.transform.FindChild("tip").GetComponent<UILabel>();
 
+            titleLabel.text = title;
+            tipLabel.text = tip;
+        }
+        void showInput()
+        {
+            Transform input = transform.FindChild("input");
+            input.gameObject.SetActive(gameScene == GameScenes.SEARCHING_FRIEND || gameScene == GameScenes.JOIN_FRIEND);
+        }
         IEnumerator hideShowBtn(Transform btn, bool hide)
         {
             Vector3 velocity = new Vector3(0, hide ? 3 : -3, 0);
@@ -148,12 +191,12 @@ namespace FiveVsFive
 
         IEnumerator whenStart()
         {
-            while (!LanClient.instance.isRunning)
+            while (!LanClient.instance.isGaming)//表示未开局
                 yield return null;
 
             //连接了，打开欢迎画面
             setSceneOld(GameScenes.GAME_SCENE);
-            StartCoroutine(showButtons(hideShowWel));
+            StartCoroutine(showButtons());
         }
 
         void Update()
@@ -168,7 +211,7 @@ namespace FiveVsFive
                         break;
                     case GameScenes.CHOOSE_FRIEND://回到欢迎画面
                         setSceneOld(GameScenes.WELCOME);
-                        StartCoroutine(showButtons(null));
+                        StartCoroutine(showButtons());
                         break;
                     default:
                         Debug.Log("没有这个场景");
@@ -187,6 +230,7 @@ namespace FiveVsFive
         WELCOME,
         CHOOSE_FRIEND,
         SEARCHING_FRIEND,
+        JOIN_FRIEND,
         INPUT_IP,
         GAME_SCENE
     };

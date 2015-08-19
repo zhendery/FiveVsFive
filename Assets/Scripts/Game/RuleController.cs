@@ -2,42 +2,42 @@
 using System.Threading;
 namespace FiveVsFive
 {
-    public class RuleController
+    class RuleController
     {
-        public static RuleController instance = new RuleController();
+        Server server;
+        bool meFisrt;
 
-        ChessBoard board;
-        public bool meFisrt, isGaming;
-        public GameState isMyTurn;
-        public GameRes gameRes;
-        public RuleController()
+        GameState whoseTurn;
+
+        public RuleController(Server server)
         {
-            this.board = ChessBoard.instance;
             meFisrt = false;
-            isGaming = false;
+            this.server = server;
         }
 
         public void reset()
         {
-            isGaming = true;
             meFisrt = !meFisrt;
-            board.reset();
+            whoseTurn = meFisrt ? GameState.MY_TURN : GameState.YOUT_TURN;
 
-            isMyTurn = meFisrt ? GameState.MY_TURN : GameState.YOUT_TURN;
-            gameRes = GameRes.NO_WIN;
+            server.newTurn(whoseTurn);
         }
-        public void yourTurn()
+        public GameRes yourTurn()
         {
-            GameState oldState = isMyTurn;
+            GameState oldState = whoseTurn;
             Thread.Sleep(400);
 
-            checkIsWin(oldState);//在夹挑飞完之后判断输赢
+            GameRes gameRes = checkIsWin(oldState);//在一方走完  夹挑飞完之后判断输赢
 
-            isMyTurn = oldState == GameState.YOUT_TURN ? GameState.MY_TURN : GameState.YOUT_TURN;
+            if (gameRes == GameRes.NO_WIN)//如果没有人赢，则游戏继续，换成对手的回合
+                whoseTurn = oldState == GameState.YOUT_TURN ? GameState.MY_TURN : GameState.YOUT_TURN;
+
+            return gameRes;
         }
 
-        void checkIsWin(GameState whoseTurn)
+        GameRes checkIsWin(GameState whoseTurn)
         {
+            ChessBoard board = ChessBoard.instance;
             GameRes res = GameRes.NO_WIN, resPre = GameRes.NO_WIN;
             bool yourTurn = false;
             if (whoseTurn == GameState.MY_TURN)
@@ -69,11 +69,7 @@ namespace FiveVsFive
                 res = resPre;
             //判断结束，如果有人赢就终止游戏
 
-            if (res != GameRes.NO_WIN)
-            {
-                isMyTurn = GameState.NO_TURN;
-                gameRes = res;
-            }
+            return res;
         }
     }
     public enum GameRes { NO_WIN, ME_WIN, YOU_WIN };

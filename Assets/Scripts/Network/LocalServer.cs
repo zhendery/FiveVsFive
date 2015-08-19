@@ -12,10 +12,12 @@ namespace FiveVsFive
     {
         protected bool isRunning;
         protected Socket sock;
+        protected RuleController ruleController;
 
         public Server()
         {
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            ruleController = new RuleController(this);
         }
         public void start(string ip)
         {
@@ -23,7 +25,7 @@ namespace FiveVsFive
                 return;
             IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
             sock.Bind(endP);
-            sock.Listen(1);
+            sock.Listen(2);
 
             sock.BeginAccept(new AsyncCallback(accepted), sock);
         }
@@ -58,6 +60,7 @@ namespace FiveVsFive
             sock.Send(bits);
             msg.Close();
         }
+        public virtual void newTurn(GameState whoseTurn) { }
     }
 
     class LocalServer : Server
@@ -83,8 +86,8 @@ namespace FiveVsFive
                 case Const.YOUR_TURN:
                     sendMsg(msg);
                     Thread.Sleep(500);//让夹挑飞一会
-                    if (RuleController.instance.isMyTurn==GameState.YOUT_TURN)
-                        AIController.instance.move();
+                //    if (ruleController.whoseTurn == GameState.YOUT_TURN)
+                //        AIController.instance.move();
                     break;
             }
         }

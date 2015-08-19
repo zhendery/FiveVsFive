@@ -2,6 +2,7 @@
 using System.Collections;
 using System.IO;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -9,131 +10,183 @@ using System.Timers;
 
 namespace FiveVsFive
 {
-    class StateObject
-    {
-        public byte[] buffer;
-        public EndPoint senderRemote;
-        public Socket sock;
-
-        public StateObject()
-        {
-            buffer = new byte[Const.MAX_MSG_LEN];
-            IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
-            senderRemote = (EndPoint)sender;
-
-            sock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            sock.Bind(new IPEndPoint(IPAddress.Any, Const.PORT));
-        }
-    }
     class LanServer : Server  //相当于两个client的中转站，以及负责与ruleController沟通
     {
-        protected int myLogo;
-        protected string myName;
-        public void start()
+        Socket client1, client2;
+        public virtual void start()
         {
-            base.start(getLanIP());//先连上本地client(local)
+            new Thread((ThreadStart)
+                delegate()//不断发送广播
+                {
+                    Socket sockCon = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                    sockCon.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
+#if UNITY_EDITOR
+                    sockCon.Bind(new IPEndPoint(IPAddress.Parse(getLanIP()), 13000));
+#endif
+                    IPEndPoint broad = new IPEndPoint(IPAddress.Broadcast, Const.PORT);
 
-            StateObject state = new StateObject();//然后开始检测是否有其他客户端（正在广播）
-            state.sock.BeginReceiveFrom(state.buffer, 0, state.buffer.Length, SocketFlags.Broadcast,
-                ref state.senderRemote, new AsyncCallback(recieveBroadcast), state);
+                    byte[] msg = new byte[4];
+
+                    while (!isRunning)//当两个客户端（含自己）都连接成功后，isRunning将变为true，即广播结束
+                    {
+                        sockCon.SendTo(msg, broad);
+                        Thread.Sleep(50);
+                    }
+
+                    sockCon.Close();
+                    Console.WriteLine("stop sending broadcast");
+                }
+            ).Start();//开始广播自己
+
+            base.start(getLanIP());//启动tcp连接侦听
         }
-        private void recieveBroadcast(IAsyncResult iar)//检测到正在广播的客户端
-        {
-            StateObject state = (StateObject)iar.AsyncState;
-            state.sock.EndReceiveFrom(iar, ref state.senderRemote);
 
-            ByteArray msg = new ByteArray();
-            msg.decode(state.buffer);
-            int logoI=msg.readInt();
-            string name = msg.readString();//解析出其头像与昵称
-
-            ByteArray newMsg = new ByteArray();
-            msg.write(myLogo);
-            msg.write(myName);
-            msg.write(this.getLanIP());
-            state.sock.Send(newMsg.encode());
-
-            state.sock.Close();//关闭广播sock
-        }
-        protected Socket local=null;
         protected override void accepted(IAsyncResult iar)
         {
-            Socket client = (Socket)iar.AsyncState;
+            sock = (Socket)iar.AsyncState;
 
-            if (local == null)
+            if (client1 == null)//本地客户端
             {
-                local = client.EndAccept(iar);
-                client.BeginAccept(new AsyncCallback(accepted), client);
+                client1 = sock.EndAccept(iar);
+                sock.BeginAccept(new AsyncCallback(accepted), sock);
             }
-            else if (sock == null)
+            else if (client2 == null)//远程客户端
             {
-                sock = client.EndAccept(iar);
+                client2 = sock.EndAccept(iar);
                 isRunning = true;
+
                 new Thread((ThreadStart)recieveMsg).Start();
+                ruleController.reset();//开始新游戏
+
+                sock.Close();//联机状态中sock充当监听角色，监听完了即释放
+                sock = null;
             }
+        }
+        public override void newTurn(GameState whoseTurn)
+        {
+            bool meFirst = whoseTurn == GameState.MY_TURN;
+            ByteArray msg = new ByteArray();
+            msg.write(Const.NEW_TURN);
+            msg.write(meFirst);
+            sendMsg(client1, msg);
+            msg.Close();
+
+            msg = new ByteArray();
+            msg.write(Const.NEW_TURN);
+            msg.write(!meFirst);
+            sendMsg(client2, msg);
+            msg.Close();
         }
         protected override void recieveMsg()
         {
             while (isRunning)
             {
-                if (local.Available > 0)
+                if (client1.Available > 0)
                 {
-                    byte[] buffer = new byte[local.Available];
-                    local.Receive(buffer);
+                    byte[] buffer = new byte[client1.Available];
+                    client1.Receive(buffer);
                     ByteArray msg = new ByteArray();
                     msg.decode(buffer);
-                    handleMsg(msg,local,sock);
+                    handleMsg(msg, client1, client2);
                 }
-                if (sock.Available > 0)
+                if (client2.Available > 0)
                 {
-                    byte[] buffer = new byte[sock.Available];
-                    sock.Receive(buffer);
+                    byte[] buffer = new byte[client2.Available];
+                    client2.Receive(buffer);
                     ByteArray msg = new ByteArray();
                     msg.decode(buffer);
-                    handleMsg(msg,sock,local);
+                    handleMsg(msg, client2, client1);
                 }
                 Thread.Sleep(50);
             }
-            sock.Close();
-            local.Close();
+            client1.Close();
+            client2.Close();
         }
-        protected void handleMsg(ByteArray msg,Socket from,Socket to)
+        protected void handleMsg(ByteArray msg, Socket from, Socket to)
         {
             byte action = msg.readByte();
             ByteArray newMsg = new ByteArray();
             switch (action)
             {
-                case Const.CONNECT:
-                    if(from==local )
+                case Const.UP_CHESS:
+                    newMsg.write(Const.UP_CHESS);
+                    //因为对手的棋盘和我是正好相反的，所以要取”互补数“
+                    newMsg.write(9 - msg.readInt());
+                    sendMsg(to, msg);
+                    break;
+                case Const.MOVE_CHESS:
+                    newMsg.write(Const.MOVE_CHESS);
+                    //因为对手的棋盘和我是正好相反的，所以要取”互补数“
+                    newMsg.write(9 - msg.readInt());
+                    sendMsg(to, msg);
+
+                    //走完了判断输赢
+                    GameRes res = ruleController.yourTurn();
+                    newMsg.Close();
+                    newMsg = new ByteArray();
+                    if (res == GameRes.NO_WIN)//如果没有人赢则向对手发送你走的指令
                     {
-                        myLogo = msg.readInt();
-                        myName = msg.readString();
+                        newMsg.write(Const.YOUR_TURN);
+                        sendMsg(to, newMsg);
+                    }
+                    else//如果有人赢了，则向两位玩家发送谁赢了
+                    {
+                        newMsg.write(Const.END_GAME);
+                        newMsg.write((int)res);//将比赛结果以int的形式发送给两方
+                        sendMsg(to, newMsg);
+                        sendMsg(from, newMsg);
                     }
                     break;
             }
+
+            newMsg.Close();
             msg.Close();
         }
-        public void yourTurn()
+        protected void sendMsg(Socket sock, ByteArray msg)
+        {
+            byte[] bits = msg.encode();
+            sock.Send(bits);
+            msg.Close();
+        }
+        protected void yourTurn()
         {
 
         }
-        public void upChess(int index)
+        protected void upChess(int index)
         {
 
         }
 
         public virtual string getLanIP()
         {
+#if UNITY_EDITOR
+            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+            foreach (NetworkInterface adapter in nics)
+            {
+                if (adapter.Name == "WLAN")//判断是否是无线
+                {
+                    IPInterfaceProperties ip = adapter.GetIPProperties();     //IP配置信息
+                    foreach (UnicastIPAddressInformation add in ip.UnicastAddresses)
+                    {
+                        if (add.Address.AddressFamily == AddressFamily.InterNetwork)
+                            return add.Address.ToString();
+                    }
+                }
+            }
+#elif  UNITY_ANDROID
             IPAddress[] adds = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
             foreach (IPAddress ip in adds)
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                     return ip.ToString();
+#else
+            
+#endif
             return null;
         }
     }
     class WlanServer : LanServer
     {
-        public void start()
+        public override void start()
         {
         }
 

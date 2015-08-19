@@ -13,12 +13,10 @@
             UP_CHESS = 12,
             MOVE_CHESS = 13,
             OVER_CHESS = 14,
-            MOVE_END=15,
 
             NEW_TURN=20,
 
             YOUR_TURN=31,
-            GAME_WIN = 32,
-            GAME_LOSE = 32;
+            END_GAME = 32;
     }
 }

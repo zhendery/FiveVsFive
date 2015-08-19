@@ -17,6 +17,11 @@ namespace FiveVsFive
         {
             this.WriteByte(data);
         }
+        public void write(bool data)
+        {
+            byte[] bits = BitConverter.GetBytes(data);
+            this.Write(bits, 0, 1);
+        }
 
         public void write(string data)//因为字符串长度不定，因此将第一个4字节用作字符串长度
         {
@@ -47,6 +52,12 @@ namespace FiveVsFive
             byte[] bits=new byte[4];
             this.Read(bits,0,4);
             return BitConverter.ToInt32(bits, 0);
+        }
+        public bool readBool()
+        {
+            byte[] bits = new byte[1];
+            this.Read(bits, 0, 1);
+            return BitConverter.ToBoolean(bits, 0);
         }
         public byte readByte()
         {

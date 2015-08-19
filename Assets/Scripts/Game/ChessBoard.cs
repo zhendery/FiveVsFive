@@ -11,15 +11,13 @@ namespace FiveVsFive
         public bool isMine, oldMine;
         public Chess()
         {
-            oldX = -1;
-            oldY = -1;
             oldMine = false;
         }
         public Chess(int x, int y)
             : this()
         {
-            this.x = x;
-            this.y = y;
+            this.x = this.oldX = x;
+            this.y = this.oldY = y;
         }
         public Chess(Chess c)
         {
@@ -31,17 +29,24 @@ namespace FiveVsFive
             this.oldMine = c.oldMine;
         }
         public Chess(int x, int y, bool isMine)
-            : this()
         {
-            this.x = x;
-            this.y = y;
-            this.isMine = isMine;
+            this.x =this.oldX = x;
+            this.y = this.oldY = y;
+            this.isMine = this.oldMine = isMine;
         }
-        public void setOld(Chess c)
+        public void setOldPos()
+        {//将自己的信息设旧(即存到old当中)
+            oldY = this.y;
+            oldX = this.x;
+        }
+        public void setOld()
+        {//将自己的信息设旧(即存到old当中)
+            setOldPos();
+            setOldMine();
+        }
+        public void setOldMine()
         {
-            oldY = c.y;
-            oldX = c.x;
-            oldMine = c.isMine;
+            oldMine = this.isMine;
         }
         public bool isMoved()
         {
@@ -68,7 +73,7 @@ namespace FiveVsFive
     {
         public static ChessBoard instance = new ChessBoard();
         Chess[] chesses;//表示10颗棋子
-        public int selected;
+        public int selected,chessUp;
         int[][] locations;//表示25个棋点,值为chesses索引
 
         public ChessBoard()
@@ -92,8 +97,14 @@ namespace FiveVsFive
             short i = 0;
             for (i = 0; i < 5; ++i)
             {
-                chesses[i] = new Chess(i, 0, true);
-                chesses[i + 5] = new Chess(i, 4, false);
+                chesses[i] = new Chess(2, 2, false);//首先反置，并置错位，使得绘图可以检测出
+                chesses[i + 5] = new Chess(2, 2, true);
+
+                changeChessOwner(i);//开始翻转
+                changeChessOwner(i + 5);
+                moveChess(i, i, 0);//开始移动
+                moveChess(i + 5, i, 4);
+
 
                 for (short k = 0; k < 5; ++k)//全部置零(-1 表示无棋子)
                     locations[i][k] = -1;
@@ -104,6 +115,7 @@ namespace FiveVsFive
                 locations[i][4] = i + 5;
             }
             selected = -1;
+            chessUp = -1;
         }
 
         public Chess getChess(int index)
@@ -158,7 +170,7 @@ namespace FiveVsFive
                             newBoard.moveChess(index, newC.x, newC.y);//假走
 
                             //对方的回合就要判断我方棋子数量
-                            int countEn = newBoard.getCount(RuleController.instance.isMyTurn == GameState.YOUT_TURN);
+                            int countEn = newBoard.getCount(LanClient.instance.whoseTurn == GameState.YOUT_TURN);
                             bool canGoIreg = true;
                             switch (countEn)
                             {
@@ -194,13 +206,14 @@ namespace FiveVsFive
             if (selected > -1 && selected < 10)
             {
                 locations[chesses[selected].x][chesses[selected].y] = -1;
-                chesses[selected].setOld(chesses[selected]);
+                chesses[selected].setOldPos();
                 chesses[selected].x = pos % 5;
                 chesses[selected].y = pos / 5;
                 locations[chesses[selected].x][chesses[selected].y] = selected;
                 selected = -1;
 
-                LanClient.instance.yourTurn();
+                //走完便自封，直到server发来消息解封
+                LanClient.instance.whoseTurn = GameState.NO_TURN;
             }
         }
         public void moveChess(int index, int x, int y)//供假走测试用
@@ -208,7 +221,7 @@ namespace FiveVsFive
             if (index > -1 && index < 10)
             {
                 locations[chesses[index].x][chesses[index].y] = -1;
-                chesses[index].setOld(chesses[index]);
+                chesses[index].setOldPos();
                 chesses[index].x = x;
                 chesses[index].y = y;
                 locations[chesses[index].x][chesses[index].y] = index;
@@ -219,7 +232,7 @@ namespace FiveVsFive
         {
             if (index > -1 && index < 10)
             {
-                chesses[index].setOld(chesses[index]);
+                chesses[index].setOldMine();
                 chesses[index].isMine = !chesses[index].isMine;
             }
         }
