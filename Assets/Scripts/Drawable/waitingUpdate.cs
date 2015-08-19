@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class waitingUpdate : MonoBehaviour {
+public class WaitingUpdate : MonoBehaviour {
 
     UISprite sprite;
 	void Start () {

@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections;
+using FiveVsFive;
 
-public class gameButtons : MonoBehaviour {
+public class GameButtons : MonoBehaviour {
 
     UIEventListener[] buttons;
 	void Start () {
@@ -20,6 +21,7 @@ public class gameButtons : MonoBehaviour {
             {
                 case "quit"://返回到开始界面
                     //出现离开提示
+                    Global.setSceneOld(GameScenes.WELCOME);
                     break;
                 case "setting"://设置用户头像和昵称
                     Debug.Log("setting");

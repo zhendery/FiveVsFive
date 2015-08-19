@@ -8,7 +8,7 @@ namespace FiveVsFive
         ChessBoard board;
         public AIController()
         {
-            board = ChessBoard.instance;
+            board = Global.board;
         }
 
         public void move()
@@ -22,7 +22,7 @@ namespace FiveVsFive
             int step = canGo[ran.Next(canGo.Length)];
             board.moveChess(step);
 
-           // LanClient.instance.yourTurn();//AI走完了
+           // Global.client.yourTurn();//AI走完了
         }
     }
 }

@@ -37,7 +37,7 @@ namespace FiveVsFive
 
         GameRes checkIsWin(GameState whoseTurn)
         {
-            ChessBoard board = ChessBoard.instance;
+            ChessBoard board = Global.board;
             GameRes res = GameRes.NO_WIN, resPre = GameRes.NO_WIN;
             bool yourTurn = false;
             if (whoseTurn == GameState.MY_TURN)

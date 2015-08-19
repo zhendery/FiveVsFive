@@ -30,7 +30,7 @@ namespace FiveVsFive
         }
         public Chess(int x, int y, bool isMine)
         {
-            this.x =this.oldX = x;
+            this.x = this.oldX = x;
             this.y = this.oldY = y;
             this.isMine = this.oldMine = isMine;
         }
@@ -71,9 +71,8 @@ namespace FiveVsFive
     }
     public class ChessBoard
     {
-        public static ChessBoard instance = new ChessBoard();
         Chess[] chesses;//表示10颗棋子
-        public int selected,chessUp;
+        public int selected, chessUp;
         int[][] locations;//表示25个棋点,值为chesses索引
 
         public ChessBoard()
@@ -83,14 +82,18 @@ namespace FiveVsFive
             for (short i = 0; i < 5; ++i)
                 locations[i] = new int[5];
         }
-        public ChessBoard(ChessBoard board)
-            : this()//复制棋盘，供假走的时候参考
+        ChessBoard copyBoard(bool revese)//revese表示复制的是对方的棋盘
         {
+            ChessBoard board = new ChessBoard();
             for (short i = 0; i < 10; ++i)
-                chesses[i] = new Chess(board.chesses[i]);
+                board.chesses[i] = new Chess(this.chesses[i]);
             for (short i = 0; i < 5; ++i)
                 for (short k = 0; k < 5; ++k)
-                    locations[i][k] = board.locations[i][k];
+                    board.locations[i][k] = this.locations[i][k];
+            if (revese)
+                for (short i = 0; i < 10; ++i)
+                    board.chesses[i].isMine = !board.chesses[i].isMine;
+            return board;
         }
         public void reset()
         {
@@ -156,6 +159,7 @@ namespace FiveVsFive
                 Chess selectedChess = chesses[index];
                 int dirCount = selectedChess.x % 2 == selectedChess.y % 2 ? 8 : 4;//一奇一偶的只可走上下左右
 
+                bool revese = Global.client.whoseTurn != GameState.MY_TURN;
                 for (int i = 0; i < dirCount; ++i)
                 {
                     Chess newC = new Chess(selectedChess);
@@ -166,32 +170,44 @@ namespace FiveVsFive
                             break;
                         else
                         {
-                            ChessBoard newBoard = new ChessBoard(this);//复制当前棋盘
-                            newBoard.moveChess(index, newC.x, newC.y);//假走
-
                             //对方的回合就要判断我方棋子数量
-                            int countEn = newBoard.getCount(LanClient.instance.whoseTurn == GameState.YOUT_TURN);
-                            bool canGoIreg = true;
-                            switch (countEn)
-                            {
-                                case 3://不可同时挑与夹
-                                    int[] jaRes = newBoard.ja(index);
-                                    int[] tiaoRes = newBoard.tiao(index);
-                                    if (jaRes.Length == 1 && tiaoRes.Length == 2)
-                                        canGoIreg = false;
-                                    break;
-                                case 2://不可挑
-                                    tiaoRes = newBoard.tiao(index);
-                                    if (tiaoRes.Length == 2)
-                                        canGoIreg = false;
-                                    break;
-                                case 1://不可夹
-                                    jaRes = newBoard.ja(index);
-                                    if (jaRes.Length == 1)
-                                        canGoIreg = false;
-                                    break;
-                            }
+                            int countEn = getCount(revese);
 
+                            bool canGoIreg = true;
+                            if (countEn < 4)
+                            {
+                                ChessBoard newBoard = this.copyBoard(revese);//复制当前棋盘
+                                newBoard.moveChess(index, newC.x, newC.y);//假走
+
+                                switch (countEn)
+                                {
+                                    case 3://不可同时挑与夹
+                                        int[] tiaoRes = tiao(index);
+                                        foreach (int r in tiaoRes)
+                                        {
+                                            changeChessOwner(r);
+                                        }
+
+                                        int[] jaRes = ja(index);
+                                        foreach (int r in jaRes)
+                                        {
+                                            changeChessOwner(r);
+                                        }
+                                        if (newBoard.getCount(false) == 0)
+                                            canGoIreg = false;
+                                        break;
+                                    case 2://不可挑
+                                        tiaoRes = newBoard.tiao(index);
+                                        if (tiaoRes.Length == 2)
+                                            canGoIreg = false;
+                                        break;
+                                    case 1://不可夹
+                                        jaRes = newBoard.ja(index);
+                                        if (jaRes.Length == 1)
+                                            canGoIreg = false;
+                                        break;
+                                }
+                            }
                             if (canGoIreg)
                                 list.Add(newC.y * 5 + newC.x);
                         }
@@ -213,7 +229,7 @@ namespace FiveVsFive
                 selected = -1;
 
                 //走完便自封，直到server发来消息解封
-                LanClient.instance.whoseTurn = GameState.NO_TURN;
+                Global.client.whoseTurn = GameState.NO_TURN;
             }
         }
         public void moveChess(int index, int x, int y)//供假走测试用
@@ -227,7 +243,6 @@ namespace FiveVsFive
                 locations[chesses[index].x][chesses[index].y] = index;
             }
         }
-
         public void changeChessOwner(int index)
         {
             if (index > -1 && index < 10)
@@ -236,7 +251,7 @@ namespace FiveVsFive
                 chesses[index].isMine = !chesses[index].isMine;
             }
         }
-        public void checkJaTiao(int index)
+        void check3(int index)//此方法在判断三颗的时候调用
         {
             int[] tiaoRes = tiao(index);
             foreach (int r in tiaoRes)
@@ -246,6 +261,24 @@ namespace FiveVsFive
             foreach (int r in jaRes)
                 changeChessOwner(r);
 
+            if (tiaoRes.Length != 0 || jaRes.Length != 0)
+            {
+                foreach (int i in tiaoRes)
+                    check3(i);
+                foreach (int i in jaRes)
+                    check3(i);
+            }
+        }
+
+        public void checkJaTiao(int index)
+        {
+            int[] tiaoRes = tiao(index);
+            foreach (int r in tiaoRes)
+                changeChessOwner(r);
+
+            int[] jaRes = ja(index);
+            foreach (int r in jaRes)
+                changeChessOwner(r);
         }
 
         int[] ja(int index)

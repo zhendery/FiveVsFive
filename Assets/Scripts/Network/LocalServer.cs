@@ -19,6 +19,18 @@ namespace FiveVsFive
             sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             ruleController = new RuleController(this);
         }
+        public virtual void start()
+        {
+
+        }
+        public virtual void close()
+        {
+            isRunning = false;//结束所有进程
+            if (sock != null) {
+                sock.Shutdown(SocketShutdown.Both);
+                sock.Close();//结束监听进程
+            }
+        }
         public void start(string ip)
         {
             if (ip == null)
@@ -65,7 +77,7 @@ namespace FiveVsFive
 
     class LocalServer : Server
     {
-        public void start()
+        public override void start()
         {
             base.start("127.0.0.1");
         }

@@ -13,7 +13,7 @@ namespace FiveVsFive
     class LanServer : Server  //相当于两个client的中转站，以及负责与ruleController沟通
     {
         Socket client1, client2;
-        public virtual void start()
+        public override void start()
         {
             new Thread((ThreadStart)
                 delegate()//不断发送广播
@@ -40,7 +40,20 @@ namespace FiveVsFive
 
             base.start(getLanIP());//启动tcp连接侦听
         }
-
+        public override void close()
+        {
+            isRunning = false;//结束所有进程
+            if (client1 != null)
+            {
+                client1.Shutdown(SocketShutdown.Both);
+                client1.Close();//结束监听进程
+            }
+            if (client2 != null)
+            {
+                client2.Shutdown(SocketShutdown.Both);
+                client2.Close();//结束监听进程
+            }
+        }
         protected override void accepted(IAsyncResult iar)
         {
             sock = (Socket)iar.AsyncState;
@@ -110,15 +123,15 @@ namespace FiveVsFive
             {
                 case Const.UP_CHESS:
                     newMsg.write(Const.UP_CHESS);
-                    //因为对手的棋盘和我是正好相反的，所以要取”互补数“
+                    //因为对手的棋盘和我是正好相反的，所以要取”互补数“  这里是index
                     newMsg.write(9 - msg.readInt());
-                    sendMsg(to, msg);
+                    sendMsg(to, newMsg);
                     break;
                 case Const.MOVE_CHESS:
                     newMsg.write(Const.MOVE_CHESS);
-                    //因为对手的棋盘和我是正好相反的，所以要取”互补数“
-                    newMsg.write(9 - msg.readInt());
-                    sendMsg(to, msg);
+                    //因为对手的棋盘和我是正好相反的，所以要取”互补数“  这里是pos
+                    newMsg.write(24 - msg.readInt());
+                    sendMsg(to, newMsg);
 
                     //走完了判断输赢
                     GameRes res = ruleController.yourTurn();

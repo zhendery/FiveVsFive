@@ -19,12 +19,12 @@ namespace FiveVsFive
             Random ran = new Random(DateTime.Now.Millisecond);
 
             //游戏相关初始化
-            myLogo = ran.Next(6);
+            myLogo = ran.Next(6)+1;
             myName = names[ran.Next(names.Length)];
             whoseTurn = GameState.NO_TURN;
             isGaming = false;
             myColor = false;
-            board = ChessBoard.instance;
+            board = Global.board;
         }
 
 #region 和游戏内容相关的，包括各种收到来自服务端的Action后应该怎么处理，以及微量数据
@@ -62,7 +62,6 @@ namespace FiveVsFive
                     break;
                 case Const.YOUR_TURN://就是轮到我了
                     whoseTurn = GameState.MY_TURN;
-                    //想想怎么变换箭头以及闪烁棋子
                     break;
                 case Const.END_GAME://有人赢了
                     gameRes = (GameRes)msg.readInt();//将以int形式发送过来的比赛结果存入gameRes以供检测
@@ -110,7 +109,6 @@ namespace FiveVsFive
 #region “网络”相关都在这里，想折起来，和游戏相关的分开
         public bool isRunning;
         Socket client;
-        public static LanClient instance = new LanClient();//每个设备总会有且只有一个客户端
 
         public void startLocal()//纯本地，与lcoalServer通讯
         {
