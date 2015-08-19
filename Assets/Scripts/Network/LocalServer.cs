@@ -23,14 +23,6 @@ namespace FiveVsFive
         {
 
         }
-        public virtual void close()
-        {
-            isRunning = false;//结束所有进程
-            if (sock != null) {
-                sock.Shutdown(SocketShutdown.Both);
-                sock.Close();//结束监听进程
-            }
-        }
         public void start(string ip)
         {
             if (ip == null)
@@ -48,6 +40,8 @@ namespace FiveVsFive
             isRunning = true;
 
             new Thread((ThreadStart)recieveMsg).Start();
+
+            ruleController.reset();//开始新游戏
         }
         protected virtual void recieveMsg()
         {
@@ -77,6 +71,13 @@ namespace FiveVsFive
 
     class LocalServer : Server
     {
+        AIController ai;
+        public LocalServer()
+            : base()
+        {
+            ai = new AIController(this);
+        }
+
         public override void start()
         {
             base.start("127.0.0.1");
@@ -87,22 +88,45 @@ namespace FiveVsFive
             ByteArray newMsg = new ByteArray();
             switch (action)
             {
-                case Const.NEW_TURN://新一轮游戏
-                    newMsg.write(Const.NEW_TURN);
-                    sendMsg(msg);
-                    break;
-                //case Const.UP_CHESS: 不用处理，因为电脑不需要知道你抬起了哪一个棋子
                 case Const.MOVE_CHESS:
-                    sendMsg(msg);
-                    break;
-                case Const.YOUR_TURN:
-                    sendMsg(msg);
-                    Thread.Sleep(500);//让夹挑飞一会
-                //    if (ruleController.whoseTurn == GameState.YOUT_TURN)
-                //        AIController.instance.move();
+                    GameRes res = ruleController.yourTurn();
+                    if (res == GameRes.NO_WIN)//如果没有人赢则让ai走
+                        ai.move();
+                    else//如果有人赢了，则告诉玩家发送谁赢了
+                    {
+                        newMsg.write(Const.END_GAME);
+                        newMsg.write((int)res);//将比赛结果以int的形式发送给我
+                        sendMsg(newMsg);
+                    }
                     break;
             }
+            msg.Close();
+            newMsg.Close();
         }
-
+        public override void newTurn(GameState whoseTurn)
+        {
+            bool meFirst = whoseTurn == GameState.MY_TURN;
+            ByteArray msg = new ByteArray();
+            msg.write(Const.NEW_TURN);
+            msg.write(meFirst);
+            sendMsg(msg);
+            msg.Close();
+        }
+        public void yourTurn()
+        {
+            ByteArray newMsg = new ByteArray();
+            GameRes res = ruleController.yourTurn();
+            if (res == GameRes.NO_WIN)//如果没有人赢则让我走
+            {
+                newMsg.write(Const.YOUR_TURN);
+                sendMsg(newMsg);
+            }
+            else//如果有人赢了，则告诉玩家发送谁赢了
+            {
+                newMsg.write(Const.END_GAME);
+                newMsg.write((int)res);//将比赛结果以int的形式发送给我
+                sendMsg(newMsg);
+            }
+        }
     }
 }

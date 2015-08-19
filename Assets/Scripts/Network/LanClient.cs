@@ -19,7 +19,7 @@ namespace FiveVsFive
             Random ran = new Random(DateTime.Now.Millisecond);
 
             //游戏相关初始化
-            myLogo = ran.Next(6)+1;
+            myLogo = ran.Next(6) + 1;
             myName = names[ran.Next(names.Length)];
             whoseTurn = GameState.NO_TURN;
             isGaming = false;
@@ -27,14 +27,14 @@ namespace FiveVsFive
             board = Global.board;
         }
 
-#region 和游戏内容相关的，包括各种收到来自服务端的Action后应该怎么处理，以及微量数据
+        #region 和游戏内容相关的，包括各种收到来自服务端的Action后应该怎么处理，以及微量数据
         string[] names = { "zhendery", "tommy", "Alice", "你猜我是谁", "哈哈哈" };
 
         public int myLogo, yourLogo = -1;
         public string myName, yourName = "";
         public GameState whoseTurn;
         public GameRes gameRes;
-        public bool isGaming,myColor;//myColor表示我是黑还是白，黑棋先走
+        public bool isGaming, myColor;//myColor表示我是黑还是白，黑棋先走
         ChessBoard board;
 
         void handleMsg(ByteArray msg)
@@ -64,7 +64,16 @@ namespace FiveVsFive
                     whoseTurn = GameState.MY_TURN;
                     break;
                 case Const.END_GAME://有人赢了
+                    isGaming = false;
                     gameRes = (GameRes)msg.readInt();//将以int形式发送过来的比赛结果存入gameRes以供检测
+                    break;
+
+                case Const.DISCONNECT://有人掉线了，或者有人退出了isRunning = false;
+                    
+                    if (client != null)
+                        client.Close();
+                    Global.setSceneOld(GameScenes.WELCOME);//返回欢迎界面
+                    isGaming=isRunning = false;
                     break;
             }
             msg.Close();
@@ -104,9 +113,9 @@ namespace FiveVsFive
             //    chessBoard.changeChessOwner(index);
             //sendMessage(Const.OVER_CHESS, indexs);
         }
-#endregion
+        #endregion
 
-#region “网络”相关都在这里，想折起来，和游戏相关的分开
+        #region “网络”相关都在这里，想折起来，和游戏相关的分开
         public bool isRunning;
         Socket client;
 
@@ -146,6 +155,16 @@ namespace FiveVsFive
         {
             IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
             client.BeginConnect(endP, new AsyncCallback(connected), client);
+        }
+        public void close()
+        {
+            ByteArray msg = new ByteArray();
+            msg.write(Const.DISCONNECT);
+            sendMsg(msg);
+            msg.Close();
+            if (client != null)
+                client.Close();
+            isGaming = isRunning = false;
         }
         protected void connected(IAsyncResult iar)
         {
@@ -206,8 +225,8 @@ namespace FiveVsFive
 #endif
             return null;
         }
-#endregion
-        
+        #endregion
+
     }
 
 

@@ -28,11 +28,11 @@ namespace FiveVsFive
             switch (button.name)
             {
                 case "local"://挑战电脑 -->直接开始游戏
-
                     server = new LocalServer();
                     server.start();
 
                     Global.client.startLocal();
+                    Global.setSceneOld(GameScenes.GAME_SCENE);
                     StartCoroutine(waitForStart());
                     break;
                 case "friend"://挑战朋友 -->选择哪种朋友
@@ -96,29 +96,33 @@ namespace FiveVsFive
             {
                 case GameScenes.WELCOME:
                     s1 = 0; e1 = 3;
-                    if(Global.gameScene == GameScenes.CHOOSE_FRIEND)
-                            s2 = 3; e2 = 7;
-                    //if GameScenes.GAME_SCENE: 因为s1=e1=0，所以就不再列举
+                    if (Global.gameScene == GameScenes.CHOOSE_FRIEND)
+                    { s2 = 3; e2 = 7; }
                     break;
 
 
                 case GameScenes.CHOOSE_FRIEND:
                     s1 = 3; e1 = 7;
-                    if (Global.gameScene==GameScenes.WELCOME)
-                            s2 = 0; e2 = 3;
+                    if (Global.gameScene == GameScenes.WELCOME)
+                    { s2 = 0; e2 = 3; }
                     break;
 
 
                 case GameScenes.GAME_SCENE:
                     s1 = 3; e1 = 7;
-                    if (Global.gameScene==GameScenes.WELCOME)
+                    if (Global.gameScene == GameScenes.WELCOME)
                     {
-                            s2 = 0; e2 = 3;
-                            //因为从游戏界面回到欢迎界面，所以要合起来，并且将现有的server关闭
-                            if (server != null)
-                                server.close();
-                            hideShowWels(false);
+                        s2 = 0; e2 = 3;
+                        //因为从游戏界面回到欢迎界面，所以要合起来
+                        hideShowWels(false);
                     }
+                    break;
+
+
+                case GameScenes.SEARCHING_FRIEND:
+                case GameScenes.JOIN_FRIEND:
+                    if (Global.gameScene == GameScenes.GAME_SCENE)
+                        showFriend();
                     break;
             }
 
@@ -128,6 +132,8 @@ namespace FiveVsFive
                 showFriend();//
                 s1 = 3; e1 = 7; s2 = e2 = 0;
             }
+
+            Global.oldScene = Global.gameScene;//既然内容更新完了，就把old清掉吧
 
             for (int i = s1; i < e1; ++i)
             {
@@ -140,15 +146,7 @@ namespace FiveVsFive
                 yield return time;
             }
             if (Global.gameScene == GameScenes.GAME_SCENE)
-            {
-                if (Global.oldScene == GameScenes.SEARCHING_FRIEND
-                    || Global.oldScene == GameScenes.JOIN_FRIEND)
-                    showFriend();//如果从搜寻朋友界面进入，则要隐藏
-                //不论从什么界面进入游戏界面，均要将其打开
                 hideShowWels(true);
-            }
-
-            Global.oldScene = Global.gameScene;//既然内容更新完了，就把old清掉吧
         }
         void showFriend()
         {

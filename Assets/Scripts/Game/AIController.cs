@@ -2,13 +2,14 @@
 using System.Threading;
 namespace FiveVsFive
 {
-    public class AIController
+    class AIController
     {
-        public static AIController instance=new AIController();
+        LocalServer server;
         ChessBoard board;
-        public AIController()
+        public AIController(LocalServer server)
         {
             board = Global.board;
+            this.server = server;
         }
 
         public void move()
@@ -22,7 +23,7 @@ namespace FiveVsFive
             int step = canGo[ran.Next(canGo.Length)];
             board.moveChess(step);
 
-           // Global.client.yourTurn();//AI走完了
+           server.yourTurn() ;//AI走完了
         }
     }
 }

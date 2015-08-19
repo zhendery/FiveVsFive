@@ -40,20 +40,6 @@ namespace FiveVsFive
 
             base.start(getLanIP());//启动tcp连接侦听
         }
-        public override void close()
-        {
-            isRunning = false;//结束所有进程
-            if (client1 != null)
-            {
-                client1.Shutdown(SocketShutdown.Both);
-                client1.Close();//结束监听进程
-            }
-            if (client2 != null)
-            {
-                client2.Shutdown(SocketShutdown.Both);
-                client2.Close();//结束监听进程
-            }
-        }
         protected override void accepted(IAsyncResult iar)
         {
             sock = (Socket)iar.AsyncState;
@@ -150,6 +136,14 @@ namespace FiveVsFive
                         sendMsg(from, newMsg);
                     }
                     break;
+                case Const.DISCONNECT:
+                    sendMsg(to, msg);
+                    if (client1 != null)
+                        client1.Close();//结束监听进程
+                    if (client2 != null)
+                        client2.Close();//结束监听进程
+                    isRunning = false;//结束所有进程
+                    break;
             }
 
             newMsg.Close();
@@ -158,16 +152,9 @@ namespace FiveVsFive
         protected void sendMsg(Socket sock, ByteArray msg)
         {
             byte[] bits = msg.encode();
-            sock.Send(bits);
+            if (sock.Connected)
+                sock.Send(bits);
             msg.Close();
-        }
-        protected void yourTurn()
-        {
-
-        }
-        protected void upChess(int index)
-        {
-
         }
 
         public virtual string getLanIP()

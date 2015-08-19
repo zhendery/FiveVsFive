@@ -12,9 +12,6 @@ namespace FiveVsFive
         Transform[] chesses;
         UISprite[] tips;
 
-        Vector2 centerScreen;
-        float aspect;
-
         public GameObject chessPre, tipPre;
         public Transform tipsParent;
 
@@ -69,8 +66,8 @@ namespace FiveVsFive
                     c.setOld();
                 }
                 showTips();
-                checkEndGame();
             }
+            checkEndGame();
         }
 
         IEnumerator delayToOver(float delay, int arg)
@@ -141,12 +138,12 @@ namespace FiveVsFive
                 tips[index].alpha = 1;
         }
 
+        public Camera camerUI;
         void OnMouseDown()
         {
             if (Global.client.whoseTurn == GameState.MY_TURN)
             {
-                aspect = 720 / Screen.height;
-                centerScreen = new Vector2(Screen.width / 2, Screen.height / 2);
+                float aspect = 720 / Screen.height;
 
                 float minDis = 32f;
                 int index = -1;
@@ -176,8 +173,8 @@ namespace FiveVsFive
                     minDis = 32f;
                     foreach (int item in Global.board.getCanGo())
                     {
-                        Vector2 touchPos = ((Vector2)Input.mousePosition - centerScreen) * aspect;
-                        float tempDis = Vector2.Distance(touchPos, getChessBoardPos(item));
+                        Vector2 itemPos = camerUI.WorldToScreenPoint(tips[item].transform.position);
+                        float tempDis = Vector2.Distance(Input.mousePosition, itemPos) * aspect;
                         if (tempDis < minDis)
                         {
                             minDis = tempDis;
@@ -191,17 +188,11 @@ namespace FiveVsFive
         }
         void checkEndGame()
         {
-            if (Global.client.gameRes != GameRes.NO_WIN)
+            if (Global.client!=null && Global.client.gameRes != GameRes.NO_WIN)
             {
                 string result = Global.client.gameRes == GameRes.ME_WIN ? "你赢了" : "你输了";
                 Debug.Log(result);
             }
-        }
-
-        Vector2 getChessBoardPos(int pos)
-        {
-            int y = pos / 5 - 2, x = pos % 5 - 2;
-            return new Vector2(x * 80, y * 80 );
         }
 
     }
