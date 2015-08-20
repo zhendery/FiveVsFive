@@ -13,8 +13,6 @@ namespace FiveVsFive
     {
         public LanClient()
         {
-            //网络相关初始化
-            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             isRunning = false;
             Random ran = new Random(DateTime.Now.Millisecond);
 
@@ -69,9 +67,11 @@ namespace FiveVsFive
                     break;
 
                 case Const.DISCONNECT://有人掉线了，或者有人退出了isRunning = false;
-                    
                     if (client != null)
+                    {
                         client.Close();
+                        client = null;
+                    }
                     Global.setSceneOld(GameScenes.WELCOME);//返回欢迎界面
                     isGaming=isRunning = false;
                     break;
@@ -153,6 +153,7 @@ namespace FiveVsFive
         }
         void start(string ip)//客户端与服务器连接的入口，所有start均从此入口进入
         {
+            client = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
             client.BeginConnect(endP, new AsyncCallback(connected), client);
         }
@@ -163,7 +164,10 @@ namespace FiveVsFive
             sendMsg(msg);
             msg.Close();
             if (client != null)
+            {
                 client.Close();
+                client = null;
+            }
             isGaming = isRunning = false;
         }
         protected void connected(IAsyncResult iar)

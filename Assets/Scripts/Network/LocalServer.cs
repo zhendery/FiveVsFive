@@ -16,7 +16,6 @@ namespace FiveVsFive
 
         public Server()
         {
-            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             ruleController = new RuleController(this);
         }
         public virtual void start()
@@ -25,6 +24,7 @@ namespace FiveVsFive
         }
         public void start(string ip)
         {
+            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             if (ip == null)
                 return;
             IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
@@ -57,7 +57,6 @@ namespace FiveVsFive
                 }
                 Thread.Sleep(50);
             }
-            sock.Close();
         }
         protected virtual void handleMsg(ByteArray msg) { }
         protected void sendMsg(ByteArray msg)
@@ -97,6 +96,13 @@ namespace FiveVsFive
                         newMsg.write(Const.END_GAME);
                         newMsg.write((int)res);//将比赛结果以int的形式发送给我
                         sendMsg(newMsg);
+                    }
+                    break;
+                case Const.DISCONNECT:
+                    if (sock != null)
+                    {
+                        sock.Close();
+                        sock = null;
                     }
                     break;
             }

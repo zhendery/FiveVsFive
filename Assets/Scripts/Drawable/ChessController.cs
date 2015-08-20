@@ -16,9 +16,11 @@ namespace FiveVsFive
         public Transform tipsParent;
 
         const int BLOCK_WID = 215;
+        float aspect;
 
         void Start()
         {
+            aspect = 720f / Screen.height;
             chesses = new Transform[10];
             for (int i = 0; i < 10; ++i)
             {
@@ -143,8 +145,6 @@ namespace FiveVsFive
         {
             if (Global.client.whoseTurn == GameState.MY_TURN)
             {
-                float aspect = 720 / Screen.height;
-
                 float minDis = 32f;
                 int index = -1;
                 for (int i = 0; i < 10; ++i)

@@ -53,24 +53,26 @@
 			float4x4 modelMatrixInverse = _World2Object;
 			
 			//法向量N变化至对象坐标系
-			float3 normalDirection = normalize(float3(mul(float4(input.normal, 0.0), modelMatrixInverse)));
+			float3 normalDirection = normalize(float3(mul(float4(input.normal, 0.0), modelMatrixInverse).xyz));
 			
 			//平行光源的入射向量L直接由uniform_WorldSpaceLightPos0给出
-			float3 lightDirection =normalize(float3(_WorldSpaceLightPos0));
+			float3 lightDirection =normalize(float3(_WorldSpaceLightPos0.xyz));
 			
 			//观察向量V由摄像机坐标与顶点坐标矢量相减
-			float3 viewDirection = normalize(float3(float4(_WorldSpaceCameraPos, 1.0)
+			float3 viewDirection = normalize(float3(float4(_WorldSpaceCameraPos, 1.0).xyz
 				- mul(modelMatrix, input.vertex)));
 			
 			//镜面反射光的计算
-			float3 specularReflection=float3(_LightColor0)*float3(_SpecColor)*pow(max(0.0,dot(reflect(-lightDirection, normalDirection),viewDirection)),_Shininess);
+			float3 specularReflection=float3(_LightColor0.xyz)*float3(_SpecColor.xyz)*
+				pow(max(0.0,dot(reflect(-lightDirection, normalDirection),viewDirection)),_Shininess);
 			
 			
 			//前文计算好的漫反射光
-			float3 diffuseReflection=float3(_LightColor0) * float3(_Color)* max(0.0, dot(normalDirection, lightDirection));	
+			float3 diffuseReflection=float3(_LightColor0.xyz) * float3(_Color.xyz)* 
+				max(0.0, dot(normalDirection, lightDirection));	
 			
 			//环境光直接获取
-			float3 ambientLighting = float3(UNITY_LIGHTMODEL_AMBIENT) * float3(_Color);
+			float3 ambientLighting = float3(UNITY_LIGHTMODEL_AMBIENT.xyz) * float3(_Color.xyz);
 			
 			
 			

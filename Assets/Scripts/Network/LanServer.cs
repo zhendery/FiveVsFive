@@ -42,6 +42,7 @@ namespace FiveVsFive
         }
         protected override void accepted(IAsyncResult iar)
         {
+            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             sock = (Socket)iar.AsyncState;
 
             if (client1 == null)//本地客户端
@@ -98,8 +99,6 @@ namespace FiveVsFive
                 }
                 Thread.Sleep(50);
             }
-            client1.Close();
-            client2.Close();
         }
         protected void handleMsg(ByteArray msg, Socket from, Socket to)
         {
@@ -139,9 +138,15 @@ namespace FiveVsFive
                 case Const.DISCONNECT:
                     sendMsg(to, msg);
                     if (client1 != null)
+                    {
                         client1.Close();//结束监听进程
+                        client1 = null;
+                    }
                     if (client2 != null)
+                    {
                         client2.Close();//结束监听进程
+                        client2 = null;
+                    }
                     isRunning = false;//结束所有进程
                     break;
             }

@@ -160,6 +160,9 @@ namespace FiveVsFive
                 int dirCount = selectedChess.x % 2 == selectedChess.y % 2 ? 8 : 4;//一奇一偶的只可走上下左右
 
                 bool revese = Global.client.whoseTurn != GameState.MY_TURN;
+                //对方的回合就要判断我方棋子数量
+                int countEn = getCount(revese);
+
                 for (int i = 0; i < dirCount; ++i)
                 {
                     Chess newC = new Chess(selectedChess);
@@ -170,9 +173,6 @@ namespace FiveVsFive
                             break;
                         else
                         {
-                            //对方的回合就要判断我方棋子数量
-                            int countEn = getCount(revese);
-
                             bool canGoIreg = true;
                             if (countEn < 4)
                             {
@@ -182,27 +182,17 @@ namespace FiveVsFive
                                 switch (countEn)
                                 {
                                     case 3://不可同时挑与夹
-                                        int[] tiaoRes = tiao(index);
-                                        foreach (int r in tiaoRes)
-                                        {
-                                            changeChessOwner(r);
-                                        }
-
-                                        int[] jaRes = ja(index);
-                                        foreach (int r in jaRes)
-                                        {
-                                            changeChessOwner(r);
-                                        }
+                                        check3(index);
                                         if (newBoard.getCount(false) == 0)
                                             canGoIreg = false;
                                         break;
                                     case 2://不可挑
-                                        tiaoRes = newBoard.tiao(index);
+                                        int[] tiaoRes = newBoard.tiao(index);
                                         if (tiaoRes.Length == 2)
                                             canGoIreg = false;
                                         break;
                                     case 1://不可夹
-                                        jaRes = newBoard.ja(index);
+                                        int[] jaRes = newBoard.ja(index);
                                         if (jaRes.Length == 1)
                                             canGoIreg = false;
                                         break;
