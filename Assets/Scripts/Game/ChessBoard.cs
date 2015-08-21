@@ -182,7 +182,7 @@ namespace FiveVsFive
                                 switch (countEn)
                                 {
                                     case 3://不可同时挑与夹
-                                        check3(index);
+                                        newBoard.check3(index);
                                         if (newBoard.getCount(false) == 0)
                                             canGoIreg = false;
                                         break;
@@ -275,7 +275,8 @@ namespace FiveVsFive
         {
             List<int> res = new List<int>();
             Chess c = chesses[index];
-            for (int i = 0; i < 8; ++i)
+            int dirCount = chesses[index].x % 2 == chesses[index].y % 2 ? 8 : 4;//解释类似canGo中那句
+            for (int i = 0; i < dirCount; ++i)
             {
                 Chess c2 = c + ChessBoard.directions[i] * 2,//八个方向上的第2颗棋子，应是同色
                     c1 = c + directions[i];//第1颗棋子，应是异色，两个条件同时满足，则形成“夹”
@@ -295,7 +296,8 @@ namespace FiveVsFive
         {
             List<int> res = new List<int>();
             Chess c = chesses[index];
-            for (int i = 0; i < 8; i += 2)
+            int dirCount = chesses[index].x % 2 == chesses[index].y % 2 ? 8 : 4;//解释类似canGo中那句
+            for (int i = 0; i < dirCount; i += 2)
             {
                 Chess cL = c + directions[i],
                     cR = c + directions[i + 1];

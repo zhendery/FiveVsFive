@@ -67,7 +67,6 @@ namespace FiveVsFive
                     }
                     c.setOld();
                 }
-                showTips();
             }
             checkEndGame();
         }
@@ -80,6 +79,7 @@ namespace FiveVsFive
 
         void moveAction(int x, int y, int index)
         {
+            showTips();
             Vector3 newPos = new Vector3(index2Pos[x], index2Pos[y]);
             TweenPosition move = chesses[index].GetComponent<TweenPosition>();
             move.from = chesses[index].localPosition;
@@ -129,10 +129,11 @@ namespace FiveVsFive
                 Global.board.selected = -1;
             }
             Global.board.chessUp = -1;
+            showTips();
         }
 
 
-        void showTips()
+        public void showTips()
         {
             for (int i = 0; i < 25; ++i)
                 tips[i].alpha = 0;

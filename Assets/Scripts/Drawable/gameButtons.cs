@@ -19,14 +19,7 @@ public class GameButtons : MonoBehaviour {
             //playAudio
             switch (button.name)
             {
-                case "quit"://返回到开始界面
-                    //出现离开提示
-                    Global.client.close();
-                    Global.setSceneOld(GameScenes.WELCOME);
-                    break;
-                case "setting"://设置用户头像和昵称
-                    Debug.Log("setting");
-                    break;
+                
                 default:
                     Debug.Log("no button!!");
                     break;

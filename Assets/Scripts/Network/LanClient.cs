@@ -63,6 +63,7 @@ namespace FiveVsFive
                     break;
                 case Const.END_GAME://有人赢了
                     isGaming = false;
+                    whoseTurn = GameState.NO_TURN;
                     gameRes = (GameRes)msg.readInt();//将以int形式发送过来的比赛结果存入gameRes以供检测
                     break;
 

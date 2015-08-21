@@ -63,6 +63,9 @@ namespace FiveVsFive
                 case "commitWlan"://确定
                     //Global.client.start("");
                     break;
+                case "setting"://设置用户头像和昵称
+                    Debug.Log("setting");
+                    break;
                 default:
                     Debug.Log("no button!!");
                     break;
@@ -95,24 +98,24 @@ namespace FiveVsFive
             switch (Global.oldScene)
             {
                 case GameScenes.WELCOME:
-                    s1 = 0; e1 = 3;
+                    s1 = 0; e1 = 4;
                     if (Global.gameScene == GameScenes.CHOOSE_FRIEND)
-                    { s2 = 3; e2 = 7; }
+                    { s2 = 4; e2 = 8; }
                     break;
 
 
                 case GameScenes.CHOOSE_FRIEND:
-                    s1 = 3; e1 = 7;
+                    s1 = 4; e1 = 8;
                     if (Global.gameScene == GameScenes.WELCOME)
-                    { s2 = 0; e2 = 3; }
+                    { s2 = 0; e2 = 4; }
                     break;
 
 
                 case GameScenes.GAME_SCENE:
-                    s1 = 3; e1 = 7;
+                    s1 = 4; e1 = 8;
                     if (Global.gameScene == GameScenes.WELCOME)
                     {
-                        s2 = 0; e2 = 3;
+                        s2 = 0; e2 = 4;
                         //因为从游戏界面回到欢迎界面，所以要合起来
                         hideShowWels(false);
                     }
@@ -130,7 +133,7 @@ namespace FiveVsFive
                 || Global.gameScene == GameScenes.JOIN_FRIEND)
             {//只可能是从选朋友界面到的
                 showFriend();//
-                s1 = 3; e1 = 7; s2 = e2 = 0;
+                s1 = 4; e1 = 8; 
             }
 
             Global.oldScene = Global.gameScene;//既然内容更新完了，就把old清掉吧
@@ -218,6 +221,11 @@ namespace FiveVsFive
                         Application.Quit();
                         break;
                     case GameScenes.CHOOSE_FRIEND://回到欢迎画面
+                        Global.setSceneOld(GameScenes.WELCOME);
+                        break;
+                    case GameScenes.GAME_SCENE:
+                        //出现离开提示{}
+                        Global.client.close();
                         Global.setSceneOld(GameScenes.WELCOME);
                         break;
                     default:
