@@ -56,25 +56,13 @@ namespace FiveVsFive
                 {
                     c = Global.board.getChess(i);
                     if (c.isMoved())
-                    {
                         moveAction(c.x, c.y, i);
-                        StartCoroutine(delayToOver(0.8f, i));
-                    }
                     if (c.isOvered())
-                    {
                         overAction(c.isMine, i);
-                        StartCoroutine(delayToOver(0.6f, i));
-                    }
                     c.setOld();
                 }
             }
             checkEndGame();
-        }
-
-        IEnumerator delayToOver(float delay, int arg)
-        {
-            yield return new WaitForSeconds(delay);
-            Global.board.checkJaTiao(arg);
         }
 
         void moveAction(int x, int y, int index)

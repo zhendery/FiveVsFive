@@ -28,8 +28,6 @@ namespace FiveVsFive
 
             int step = canGo[ran.Next(canGo.Length)];
             board.moveChess(step);
-
-           server.yourTurn() ;//AI走完了
         }
     }
 }

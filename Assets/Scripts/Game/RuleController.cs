@@ -7,7 +7,7 @@ namespace FiveVsFive
         Server server;
         bool meFisrt;
 
-        GameState whoseTurn;
+        public GameState whoseTurn;
 
         public RuleController(Server server)
         {
@@ -25,7 +25,6 @@ namespace FiveVsFive
         public GameRes yourTurn()
         {
             GameState oldState = whoseTurn;
-            Thread.Sleep(1500);
 
             GameRes gameRes = checkIsWin(oldState);//在一方走完  夹挑飞完之后判断输赢
 

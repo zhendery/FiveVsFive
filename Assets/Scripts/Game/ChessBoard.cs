@@ -216,10 +216,14 @@ namespace FiveVsFive
                 chesses[selected].x = pos % 5;
                 chesses[selected].y = pos / 5;
                 locations[chesses[selected].x][chesses[selected].y] = selected;
+                int checkIndex = selected;
                 selected = -1;
 
                 //走完便自封，直到server发来消息解封
                 Global.client.whoseTurn = GameState.NO_TURN;
+
+                //走完开始判断夹挑
+                new Thread((ThreadStart)delegate() { checkJaTiao(checkIndex); }).Start();
             }
         }
         public void moveChess(int index, int x, int y)//供假走测试用
@@ -269,6 +273,18 @@ namespace FiveVsFive
             int[] jaRes = ja(index);
             foreach (int r in jaRes)
                 changeChessOwner(r);
+
+            Thread.Sleep(800);
+
+            if (tiaoRes.Length != 0 || jaRes.Length != 0)
+            {
+                foreach (int i in tiaoRes)
+                    new Thread((ThreadStart)delegate() { checkJaTiao(i); }).Start();
+                foreach (int i in jaRes)
+                    new Thread((ThreadStart)delegate() { checkJaTiao(i); }).Start();
+            }
+            else
+                Global.client.yourTurn();
         }
 
         int[] ja(int index)

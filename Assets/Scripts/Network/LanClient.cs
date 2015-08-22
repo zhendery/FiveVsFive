@@ -94,6 +94,13 @@ namespace FiveVsFive
             msg.write(index);
             sendMsg(msg);
         }
+        public void yourTurn()
+        {
+            whoseTurn = GameState.YOUT_TURN;
+            ByteArray msg = new ByteArray();
+            msg.write(Const.YOUR_TURN);
+            sendMsg(msg);
+        }
         public void move(int pos)
         {
             board.moveChess(pos);
