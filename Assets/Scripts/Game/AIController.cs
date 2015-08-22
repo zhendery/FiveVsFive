@@ -27,6 +27,7 @@ namespace FiveVsFive
 
 
             int step = canGo[ran.Next(canGo.Length)];
+            Global.client.whoseTurn = GameState.NO_TURN;
             board.moveChess(step);
         }
     }

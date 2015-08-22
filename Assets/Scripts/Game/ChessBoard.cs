@@ -219,34 +219,14 @@ namespace FiveVsFive
                 int checkIndex = selected;
                 selected = -1;
 
-                //走完便自封，直到server发来消息解封
-                Global.client.whoseTurn = GameState.NO_TURN;
-
                 //走完开始判断夹挑
-                new Thread((ThreadStart)delegate() { checkJaTiao(checkIndex); }).Start();
+                new Thread((ThreadStart)delegate() { checkJaTiao(checkIndex, true); }).Start();
             }
         }
-        public void moveChess(int index, int x, int y)//供假走测试用
+
+        public void checkJaTiao(int index, bool first)
         {
-            if (index > -1 && index < 10)
-            {
-                locations[chesses[index].x][chesses[index].y] = -1;
-                chesses[index].setOldPos();
-                chesses[index].x = x;
-                chesses[index].y = y;
-                locations[chesses[index].x][chesses[index].y] = index;
-            }
-        }
-        public void changeChessOwner(int index)
-        {
-            if (index > -1 && index < 10)
-            {
-                chesses[index].setOldMine();
-                chesses[index].isMine = !chesses[index].isMine;
-            }
-        }
-        void check3(int index)//此方法在判断三颗的时候调用
-        {
+            Thread.Sleep(400);
             int[] tiaoRes = tiao(index);
             foreach (int r in tiaoRes)
                 changeChessOwner(r);
@@ -257,35 +237,18 @@ namespace FiveVsFive
 
             if (tiaoRes.Length != 0 || jaRes.Length != 0)
             {
-                foreach (int i in tiaoRes)
-                    check3(i);
-                foreach (int i in jaRes)
-                    check3(i);
+                int checkCount = tiaoRes.Length + jaRes.Length;
+                int[] newIndexs = new int[checkCount];
+                System.Array.Copy(tiaoRes, newIndexs, tiaoRes.Length);
+                System.Array.Copy(jaRes, 0, newIndexs, tiaoRes.Length, jaRes.Length);
+
+                foreach (int i in newIndexs)
+                    checkJaTiao(i, false);
             }
-        }
-
-        public void checkJaTiao(int index)
-        {
-            int[] tiaoRes = tiao(index);
-            foreach (int r in tiaoRes)
-                changeChessOwner(r);
-
-            int[] jaRes = ja(index);
-            foreach (int r in jaRes)
-                changeChessOwner(r);
-
-            Thread.Sleep(800);
-
-            if (tiaoRes.Length != 0 || jaRes.Length != 0)
-            {
-                foreach (int i in tiaoRes)
-                    new Thread((ThreadStart)delegate() { checkJaTiao(i); }).Start();
-                foreach (int i in jaRes)
-                    new Thread((ThreadStart)delegate() { checkJaTiao(i); }).Start();
-            }
-            else
+            if (first)
                 Global.client.yourTurn();
         }
+
 
         int[] ja(int index)
         {
@@ -329,6 +292,43 @@ namespace FiveVsFive
                 }
             }
             return res.ToArray();
+        }
+        public void moveChess(int index, int x, int y)//供假走测试用
+        {
+            if (index > -1 && index < 10)
+            {
+                locations[chesses[index].x][chesses[index].y] = -1;
+                chesses[index].setOldPos();
+                chesses[index].x = x;
+                chesses[index].y = y;
+                locations[chesses[index].x][chesses[index].y] = index;
+            }
+        }
+        public void changeChessOwner(int index)
+        {
+            if (index > -1 && index < 10)
+            {
+                chesses[index].setOldMine();
+                chesses[index].isMine = !chesses[index].isMine;
+            }
+        }
+        void check3(int index)//此方法在判断三颗的时候调用
+        {
+            int[] tiaoRes = tiao(index);
+            foreach (int r in tiaoRes)
+                changeChessOwner(r);
+
+            int[] jaRes = ja(index);
+            foreach (int r in jaRes)
+                changeChessOwner(r);
+
+            if (tiaoRes.Length != 0 || jaRes.Length != 0)
+            {
+                foreach (int i in tiaoRes)
+                    check3(i);
+                foreach (int i in jaRes)
+                    check3(i);
+            }
         }
 
         public static Chess[] directions = { 

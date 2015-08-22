@@ -18,7 +18,7 @@ namespace FiveVsFive
         public void reset()
         {
             meFisrt = !meFisrt;
-            whoseTurn = meFisrt ? GameState.MY_TURN : GameState.YOUT_TURN;
+            whoseTurn = meFisrt ? GameState.MY_TURN : GameState.YOUR_TURN;
 
             server.newTurn(whoseTurn);
         }
@@ -29,7 +29,7 @@ namespace FiveVsFive
             GameRes gameRes = checkIsWin(oldState);//在一方走完  夹挑飞完之后判断输赢
 
             if (gameRes == GameRes.NO_WIN)//如果没有人赢，则游戏继续，换成对手的回合
-                whoseTurn = oldState == GameState.YOUT_TURN ? GameState.MY_TURN : GameState.YOUT_TURN;
+                whoseTurn = oldState == GameState.YOUR_TURN ? GameState.MY_TURN : GameState.YOUR_TURN;
 
             return gameRes;
         }
@@ -44,7 +44,7 @@ namespace FiveVsFive
                 resPre = GameRes.ME_WIN;
                 yourTurn = false;
             }
-            else if (whoseTurn == GameState.YOUT_TURN)
+            else if (whoseTurn == GameState.YOUR_TURN)
             {
                 resPre = GameRes.YOU_WIN;
                 yourTurn = true;
@@ -72,5 +72,5 @@ namespace FiveVsFive
         }
     }
     public enum GameRes { NO_WIN, ME_WIN, YOU_WIN };
-    public enum GameState { NO_TURN, MY_TURN, YOUT_TURN };
+    public enum GameState { NO_TURN, MY_TURN, YOUR_TURN };
 }

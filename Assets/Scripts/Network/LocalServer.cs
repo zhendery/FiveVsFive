@@ -87,18 +87,18 @@ namespace FiveVsFive
             ByteArray newMsg = new ByteArray();
             switch (action)
             {
-                //case Const.MOVE_CHESS :break;//直接在本地棋盘上动过了~所以不需要什么处理了
                 case Const.YOUR_TURN:
                     GameRes res = ruleController.yourTurn();
                     if (res == GameRes.NO_WIN)//如果没有人赢则让ai走
                     {
-                        if (ruleController.whoseTurn == GameState.MY_TURN)
+                        Global.client.whoseTurn = ruleController.whoseTurn;
+                        if (ruleController.whoseTurn == GameState.YOUR_TURN)
+                            ai.move();
+                        else
                         {
                             newMsg.write(Const.YOUR_TURN);
                             sendMsg(newMsg);
                         }
-                        else
-                            ai.move();
                     }
                     else//如果有人赢了，则告诉玩家发送谁赢了
                     {
@@ -116,7 +116,6 @@ namespace FiveVsFive
                     break;
             }
             msg.Close();
-            newMsg.Close();
         }
         public override void newTurn(GameState whoseTurn)
         {

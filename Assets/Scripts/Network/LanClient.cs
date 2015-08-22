@@ -81,7 +81,7 @@ namespace FiveVsFive
         }
         void newTurn(bool isMyTurn)
         {
-            this.whoseTurn = isMyTurn ? GameState.MY_TURN : GameState.YOUT_TURN;
+            this.whoseTurn = isMyTurn ? GameState.MY_TURN : GameState.YOUR_TURN;
             myColor = isMyTurn;
             board.reset();
             isGaming = true;
@@ -94,32 +94,27 @@ namespace FiveVsFive
             msg.write(index);
             sendMsg(msg);
         }
-        public void yourTurn()
-        {
-            whoseTurn = GameState.YOUT_TURN;
-            ByteArray msg = new ByteArray();
-            msg.write(Const.YOUR_TURN);
-            sendMsg(msg);
-        }
         public void move(int pos)
         {
+            //走完便自封，直到server发来消息解封
+            whoseTurn = GameState.NO_TURN;
             board.moveChess(pos);
+
             ByteArray msg = new ByteArray();
             msg.write(Const.MOVE_CHESS);
             msg.write(pos);
             sendMsg(msg);
         }
-        void sendMsg(ByteArray msg)
+        public void yourTurn()
         {
-            byte[] bits = msg.encode();
-            client.Send(bits);
-            msg.Close();
-        }
-        public void changeOner(int[] indexs)
-        {
-            // foreach (int index in indexs)
-            //    chessBoard.changeChessOwner(index);
-            //sendMessage(Const.OVER_CHESS, indexs);
+            if (whoseTurn == GameState.NO_TURN)
+            {
+                whoseTurn = GameState.YOUR_TURN;
+                Thread.Sleep(1000);
+                ByteArray msg = new ByteArray();
+                msg.write(Const.YOUR_TURN);
+                sendMsg(msg);
+            }
         }
         #endregion
 
@@ -165,12 +160,17 @@ namespace FiveVsFive
             IPEndPoint endP = new IPEndPoint(IPAddress.Parse(ip), Const.PORT);
             client.BeginConnect(endP, new AsyncCallback(connected), client);
         }
+        void sendMsg(ByteArray msg)
+        {
+            byte[] bits = msg.encode();
+            client.Send(bits);
+            msg.Close();
+        }
         public void close()
         {
             ByteArray msg = new ByteArray();
             msg.write(Const.DISCONNECT);
             sendMsg(msg);
-            msg.Close();
             if (client != null)
             {
                 client.Close();

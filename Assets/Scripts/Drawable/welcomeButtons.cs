@@ -7,7 +7,6 @@ namespace FiveVsFive
 {
     public class WelcomeButtons : MonoBehaviour
     {
-        Server server;
         public UIEventListener[] buttons;
 
         void Start()
@@ -28,7 +27,7 @@ namespace FiveVsFive
             switch (button.name)
             {
                 case "local"://挑战电脑 -->直接开始游戏
-                    server = new LocalServer();
+                    Server server = new LocalServer();
                     server.start();
 
                     Global.client.startLocal();
@@ -136,7 +135,7 @@ namespace FiveVsFive
                 s1 = 4; e1 = 8; 
             }
 
-            Global.oldScene = Global.gameScene;//既然内容更新完了，就把old清掉吧
+            Global.oldScene = Global.gameScene;
 
             for (int i = s1; i < e1; ++i)
             {
@@ -233,6 +232,9 @@ namespace FiveVsFive
                         break;
                 }
             }
+        }
+        void FixedUpdate()
+        {
             if (Global.gameScene != Global.oldScene)//场景变换，内容跟着变化
                 StartCoroutine(showButtons());
         }

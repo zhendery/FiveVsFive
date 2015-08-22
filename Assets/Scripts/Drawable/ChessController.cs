@@ -43,7 +43,6 @@ namespace FiveVsFive
             }
         }
 
-        static float[] index2Pos = { -2.5f, -1.3f, 0f, 1.3f, 2.5f };
         public void FixedUpdate()//自动刷新
         {
             if (Global.client != null && Global.client.isGaming)
@@ -65,10 +64,11 @@ namespace FiveVsFive
             checkEndGame();
         }
 
+        float index2Pos = 1.35f;
         void moveAction(int x, int y, int index)
         {
             showTips();
-            Vector3 newPos = new Vector3(index2Pos[x], index2Pos[y]);
+            Vector3 newPos = new Vector3(index2Pos * (x - 2), index2Pos * (y - 2));
             TweenPosition move = chesses[index].GetComponent<TweenPosition>();
             move.from = chesses[index].localPosition;
             move.to = newPos;
@@ -177,7 +177,7 @@ namespace FiveVsFive
         }
         void checkEndGame()
         {
-            if (Global.client!=null && Global.client.gameRes != GameRes.NO_WIN)
+            if (Global.client != null && Global.client.gameRes != GameRes.NO_WIN)
             {
                 string result = Global.client.gameRes == GameRes.ME_WIN ? "你赢了" : "你输了";
                 Debug.Log(result);

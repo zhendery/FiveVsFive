@@ -117,11 +117,10 @@ namespace FiveVsFive
                     //因为对手的棋盘和我是正好相反的，所以要取”互补数“  这里是pos
                     newMsg.write(24 - msg.readInt());
                     sendMsg(to, newMsg);
-
+                    break;
+                case Const.YOUR_TURN:
                     //走完了判断输赢
                     GameRes res = ruleController.yourTurn();
-                    newMsg.Close();
-                    newMsg = new ByteArray();
                     if (res == GameRes.NO_WIN)//如果没有人赢则向对手发送你走的指令
                     {
                         newMsg.write(Const.YOUR_TURN);
