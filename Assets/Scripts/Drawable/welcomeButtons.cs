@@ -14,7 +14,7 @@ namespace FiveVsFive
             for (short i = 0; i < buttons.Length; ++i)
                 buttons[i].onClick = onClick;
 
-            for (short i = 3; i < 7; ++i)
+            for (short i = 4; i < 6; ++i)
                 buttons[i].GetComponent<UISprite>().alpha = 0;
 
             Global.gameScene = GameScenes.WELCOME;
@@ -37,7 +37,7 @@ namespace FiveVsFive
                 case "friend"://挑战朋友 -->选择哪种朋友
                     Global.setSceneOld(GameScenes.CHOOSE_FRIEND);
                     break;
-                case "search"://搜寻附近朋友 -->进入搜寻界面
+                case "server"://搜寻附近朋友 -->进入搜寻界面
                     Global.setSceneOld(GameScenes.SEARCHING_FRIEND);
 
                     server = new LanServer();
@@ -46,27 +46,17 @@ namespace FiveVsFive
                     Global.client.startServer();
                     StartCoroutine(waitForStart());
                     break;
-                case "wlan"://挑战远程朋友 -->开启远程服务，出现分享信息与按钮，等待加入
-                    break;
-                case "help"://挑战须知 -->游戏帮助界面
-                    Debug.Log("hepl");
-                    break;
-                case "clientLan"://加入附近朋友 -->开启局域网客户端
+                case "client"://加入附近朋友 -->开启局域网客户端
                     Global.client.startLan();
                     Global.setSceneOld(GameScenes.JOIN_FRIEND);
 
                     StartCoroutine(waitForStart());
                     break;
-                case "clientWlan"://加入远程朋友 -->文本框，输入确定后开启远程客户端
-                    break;
-                case "commitWlan"://确定
-                    //Global.client.start("");
+                case "help"://挑战须知 -->游戏帮助界面
+                    Debug.Log("hepl");
                     break;
                 case "setting"://设置用户头像和昵称
-                    Debug.Log("setting");
-                    break;
-                default:
-                    Debug.Log("no button!!");
+                    Global.setSceneOld(GameScenes.SETTING);
                     break;
             }
         }
@@ -99,19 +89,19 @@ namespace FiveVsFive
                 case GameScenes.WELCOME:
                     s1 = 0; e1 = 4;
                     if (Global.gameScene == GameScenes.CHOOSE_FRIEND)
-                    { s2 = 4; e2 = 8; }
+                    { s2 = 4; e2 = 6; }
                     break;
 
 
                 case GameScenes.CHOOSE_FRIEND:
-                    s1 = 4; e1 = 8;
+                    s1 = 4; e1 = 6;
                     if (Global.gameScene == GameScenes.WELCOME)
                     { s2 = 0; e2 = 4; }
                     break;
 
 
                 case GameScenes.GAME_SCENE:
-                    s1 = 4; e1 = 8;
+                    s1 = 4; e1 = 6;
                     if (Global.gameScene == GameScenes.WELCOME)
                     {
                         s2 = 0; e2 = 4;
@@ -120,7 +110,10 @@ namespace FiveVsFive
                     }
                     break;
 
-
+                case GameScenes.SETTING:
+                    if (Global.gameScene == GameScenes.WELCOME)
+                    { s2 = 0; e2 = 4; }
+                    break;
                 case GameScenes.SEARCHING_FRIEND:
                 case GameScenes.JOIN_FRIEND:
                     if (Global.gameScene == GameScenes.GAME_SCENE)
@@ -132,7 +125,7 @@ namespace FiveVsFive
                 || Global.gameScene == GameScenes.JOIN_FRIEND)
             {//只可能是从选朋友界面到的
                 showFriend();//
-                s1 = 4; e1 = 8; 
+                s1 = 4; e1 = 6;
             }
 
             Global.oldScene = Global.gameScene;
@@ -149,6 +142,11 @@ namespace FiveVsFive
             }
             if (Global.gameScene == GameScenes.GAME_SCENE)
                 hideShowWels(true);
+            if (Global.gameScene == GameScenes.SETTING)
+            {
+                Transform startUI = transform.parent;
+                startUI.FindChild("settingPanel").gameObject.SetActive(true);
+            }
         }
         void showFriend()
         {
@@ -157,12 +155,12 @@ namespace FiveVsFive
             if (Global.gameScene == GameScenes.SEARCHING_FRIEND)
             {
                 title = "正在搜索附近好友，请稍后...";
-                tip = "“加入附近好友”";
+                tip = "“接收挑战”";
             }
             else if (Global.gameScene == GameScenes.JOIN_FRIEND)
             {
                 title = "正在加入附近好友，请稍后...";
-                tip = "搜寻附近好友";
+                tip = "发起挑战";
             }
             else
             {
@@ -176,12 +174,6 @@ namespace FiveVsFive
 
             titleLabel.text = title;
             tipLabel.text = tip;
-        }
-        void showInput()
-        {
-            Transform input = transform.FindChild("input");
-            input.gameObject.SetActive(Global.gameScene == GameScenes.SEARCHING_FRIEND
-                || Global.gameScene == GameScenes.JOIN_FRIEND);
         }
         void hideShowBtn(Transform btn, bool hide)
         {
@@ -225,6 +217,10 @@ namespace FiveVsFive
                     case GameScenes.GAME_SCENE:
                         //出现离开提示{}
                         Global.client.close();
+                        Global.setSceneOld(GameScenes.WELCOME);
+                        break;
+                    case GameScenes.SETTING:
+                        transform.parent.FindChild("settingPanel").gameObject.SetActive(false);
                         Global.setSceneOld(GameScenes.WELCOME);
                         break;
                     default:

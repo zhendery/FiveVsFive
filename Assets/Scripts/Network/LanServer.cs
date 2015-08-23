@@ -21,7 +21,7 @@ namespace FiveVsFive
                     Socket sockCon = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                     sockCon.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, true);
 #if UNITY_EDITOR
-                    sockCon.Bind(new IPEndPoint(IPAddress.Parse(getLanIP()), 13000));
+                    sockCon.Bind(new IPEndPoint(IPAddress.Parse(IPManager.getLanIP()), 13000));
 #endif
                     IPEndPoint broad = new IPEndPoint(IPAddress.Broadcast, Const.PORT);
 
@@ -38,7 +38,7 @@ namespace FiveVsFive
                 }
             ).Start();//开始广播自己
 
-            base.start(getLanIP());//启动tcp连接侦听
+            base.start(IPManager.getLanIP());//启动tcp连接侦听
         }
         protected override void accepted(IAsyncResult iar)
         {
@@ -159,62 +159,6 @@ namespace FiveVsFive
             if (sock.Connected)
                 sock.Send(bits);
             msg.Close();
-        }
-
-        public virtual string getLanIP()
-        {
-#if UNITY_EDITOR
-            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface adapter in nics)
-            {
-                if (adapter.Name == "WLAN")//判断是否是无线
-                {
-                    IPInterfaceProperties ip = adapter.GetIPProperties();     //IP配置信息
-                    foreach (UnicastIPAddressInformation add in ip.UnicastAddresses)
-                    {
-                        if (add.Address.AddressFamily == AddressFamily.InterNetwork)
-                            return add.Address.ToString();
-                    }
-                }
-            }
-#elif  UNITY_ANDROID
-            IPAddress[] adds = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-            foreach (IPAddress ip in adds)
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    return ip.ToString();
-#else
-            
-#endif
-            return null;
-        }
-    }
-    class WlanServer : LanServer
-    {
-        public override void start()
-        {
-        }
-
-
-        public override string getLanIP()
-        {
-            try
-            {
-                WebRequest wr = WebRequest.Create("http://www.ip138.com/ip2city.asp");
-                Stream s = wr.GetResponse().GetResponseStream();
-                StreamReader sr = new StreamReader(s, Encoding.Default);
-                string all = sr.ReadToEnd(); //读取网站的数据
-
-                int start = all.IndexOf("[") + 1;
-                int end = all.IndexOf("]", start);
-                string tempip = all.Substring(start, end - start);
-                sr.Close();
-                s.Close();
-                return tempip;
-            }
-            catch
-            {
-                return null;
-            }
         }
 
     }

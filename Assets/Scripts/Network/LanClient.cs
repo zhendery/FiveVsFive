@@ -74,7 +74,7 @@ namespace FiveVsFive
                         client = null;
                     }
                     Global.setSceneOld(GameScenes.WELCOME);//返回欢迎界面
-                    isGaming=isRunning = false;
+                    isGaming = isRunning = false;
                     break;
             }
             msg.Close();
@@ -126,9 +126,16 @@ namespace FiveVsFive
         {
             start("127.0.0.1");
         }
+        //public void startServer(bool wlan)//server端的客户端，与自己的ip通讯
+        //{
+        //    if (wlan)
+        //        start(IPManager.getWlanIP());
+        //    else
+        //        start(IPManager.getLanIP());
+        //}
         public void startServer()//server端的客户端，与自己的ip通讯
         {
-            start(getLanIP());
+                start(IPManager.getLanIP());
         }
         public void startLan()//局域网远程端的客户端，首先检测正在广播的服务端，然后根据其ip进行连接
         {
@@ -153,6 +160,11 @@ namespace FiveVsFive
                         start(ipAdd.ToString());
                     }
             ), state);
+        }
+
+        public void startWlan(string ip)//广域网的远程客户端
+        {
+            start(ip);
         }
         void start(string ip)//客户端与服务器连接的入口，所有start均从此入口进入
         {
@@ -210,32 +222,6 @@ namespace FiveVsFive
             }
             client.Shutdown(SocketShutdown.Both);
             client.Close();
-        }
-        public string getLanIP()
-        {
-#if UNITY_EDITOR
-            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface adapter in nics)
-            {
-                if (adapter.Name == "WLAN")//判断是否是无线
-                {
-                    IPInterfaceProperties ip = adapter.GetIPProperties();     //IP配置信息
-                    foreach (UnicastIPAddressInformation add in ip.UnicastAddresses)
-                    {
-                        if (add.Address.AddressFamily == AddressFamily.InterNetwork)
-                            return add.Address.ToString();
-                    }
-                }
-            }
-#elif  UNITY_ANDROID
-            IPAddress[] adds = Dns.GetHostEntry(Dns.GetHostName()).AddressList;
-            foreach (IPAddress ip in adds)
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                    return ip.ToString();
-#else
-            
-#endif
-            return null;
         }
         #endregion
 

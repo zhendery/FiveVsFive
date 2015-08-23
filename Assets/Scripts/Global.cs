@@ -6,7 +6,8 @@
         CHOOSE_FRIEND,
         SEARCHING_FRIEND,
         JOIN_FRIEND,
-        INPUT_IP,
+        SETTING,
+        HELP,
         GAME_SCENE
     };
     public class Global

@@ -61,7 +61,6 @@ namespace FiveVsFive
                     c.setOld();
                 }
             }
-            checkEndGame();
         }
 
         float index2Pos = 1.35f;
@@ -173,14 +172,6 @@ namespace FiveVsFive
                     if (pos > -1)
                         Global.client.move(pos);
                 }
-            }
-        }
-        void checkEndGame()
-        {
-            if (Global.client != null && Global.client.gameRes != GameRes.NO_WIN)
-            {
-                string result = Global.client.gameRes == GameRes.ME_WIN ? "你赢了" : "你输了";
-                Debug.Log(result);
             }
         }
 

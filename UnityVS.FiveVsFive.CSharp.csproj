@@ -58,6 +58,12 @@
     <Reference Include="UnityEngine.Analytics">
       <HintPath>Library\UnityAssemblies\UnityEngine.Analytics.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.Networking">
+      <HintPath>Library\UnityAssemblies\UnityEngine.Networking.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>Library\UnityAssemblies\UnityEngine.UI.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEditor.iOS.Extensions.Xcode">
       <HintPath>Library\UnityAssemblies\UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
     </Reference>
@@ -195,6 +201,8 @@
     <Compile Include="Assets\NGUI\Scripts\UI\UIViewport.cs" />
     <Compile Include="Assets\Scripts\Drawable\ChessController.cs" />
     <Compile Include="Assets\Scripts\Drawable\GameButtons.cs" />
+    <Compile Include="Assets\Scripts\Drawable\GameEndPanel.cs" />
+    <Compile Include="Assets\Scripts\Drawable\SettingPanel.cs" />
     <Compile Include="Assets\Scripts\Drawable\TimeUpdate.cs" />
     <Compile Include="Assets\Scripts\Drawable\WaitingUpdate.cs" />
     <Compile Include="Assets\Scripts\Drawable\WelcomeButtons.cs" />
@@ -206,12 +214,14 @@
     <Compile Include="Assets\Scripts\GuiTextDebug.cs" />
     <Compile Include="Assets\Scripts\Network\ByteArray.cs" />
     <Compile Include="Assets\Scripts\Network\Const.cs" />
+    <Compile Include="Assets\Scripts\Network\IPManager.cs" />
     <Compile Include="Assets\Scripts\Network\LanClient.cs" />
     <Compile Include="Assets\Scripts\Network\LanServer.cs" />
     <Compile Include="Assets\Scripts\Network\LocalServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Materials\CustomSpecular.shader" />
+    <None Include="Assets\Materials\WaterBlur.shader" />
     <None Include="Assets\NGUI\Examples\Atlases\Fantasy\Fantasy Font - Normal.txt" />
     <None Include="Assets\NGUI\Examples\Atlases\Refractive\Refractive Font - Header.txt" />
     <None Include="Assets\NGUI\Examples\Atlases\Refractive\Refractive Font - Normal.txt" />
