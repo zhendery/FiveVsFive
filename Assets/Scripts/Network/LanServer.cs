@@ -106,6 +106,9 @@ namespace FiveVsFive
             ByteArray newMsg = new ByteArray();
             switch (action)
             {
+                case Const.NEW_TURN:
+                    ruleController.reset();//开始新游戏
+                    break;
                 case Const.UP_CHESS:
                     newMsg.write(Const.UP_CHESS);
                     //因为对手的棋盘和我是正好相反的，所以要取”互补数“  这里是index

@@ -14,20 +14,42 @@ namespace FiveVsFive
         public LanClient()
         {
             isRunning = false;
-            Random ran = new Random(DateTime.Now.Millisecond);
 
             //游戏相关初始化
-            myLogo = ran.Next(6) + 1;
-            myName = names[ran.Next(names.Length)];
             whoseTurn = GameState.NO_TURN;
+            gameRes = GameRes.NO_WIN;
             isGaming = false;
             myColor = false;
             board = Global.board;
+
+            string name = UnityEngine.PlayerPrefs.GetString(Names.keyName, "");
+            int logo = UnityEngine.PlayerPrefs.GetInt(Names.keyLogo, -1);
+            if ("".Equals(name) || logo==-1)
+            {
+                Information info = Names.getRandomName();
+                UnityEngine.PlayerPrefs.SetString(Names.keyName, info.name);
+                UnityEngine.PlayerPrefs.SetInt(Names.keyLogo, info.logo);
+                myLogo = info.logo;
+                myName = info.name;
+            }
+            else
+            {
+                myLogo = logo;
+                myName = name;
+            }
+            int audio = UnityEngine.PlayerPrefs.GetInt(Names.keyAudio, -1);
+            if (audio == -1)
+            {
+                UnityEngine.PlayerPrefs.SetInt(Names.keyAudio, 1);
+                audioOn = true;
+            }
+            else
+                audioOn = audio == 1;
         }
 
         #region 和游戏内容相关的，包括各种收到来自服务端的Action后应该怎么处理，以及微量数据
-        string[] names = { "zhendery", "tommy", "Alice", "你猜我是谁", "哈哈哈" };
 
+        public bool audioOn;
         public int myLogo, yourLogo = -1;
         public string myName, yourName = "";
         public GameState whoseTurn;
@@ -82,9 +104,17 @@ namespace FiveVsFive
         void newTurn(bool isMyTurn)
         {
             this.whoseTurn = isMyTurn ? GameState.MY_TURN : GameState.YOUR_TURN;
+            this.gameRes = GameRes.NO_WIN;
             myColor = isMyTurn;
             board.reset();
             isGaming = true;
+        }
+
+        public void again()
+        {
+            ByteArray msg = new ByteArray();
+            msg.write(Const.NEW_TURN);
+            sendMsg(msg);
         }
         public void upChess(int index)
         {
@@ -135,7 +165,7 @@ namespace FiveVsFive
         //}
         public void startServer()//server端的客户端，与自己的ip通讯
         {
-                start(IPManager.getLanIP());
+            start(IPManager.getLanIP());
         }
         public void startLan()//局域网远程端的客户端，首先检测正在广播的服务端，然后根据其ip进行连接
         {

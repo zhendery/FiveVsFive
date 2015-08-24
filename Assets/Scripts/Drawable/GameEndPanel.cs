@@ -4,11 +4,22 @@ using FiveVsFive;
 
 public class GameEndPanel : MonoBehaviour
 {
-    Transform blurPanel,toShow,particle;
+    Transform blurPanel;
+    UISprite againBtn, animation,res;
     void Start()
     {
         blurPanel = transform.FindChild("blurPanel");
+        againBtn=transform.FindChild("again").GetComponent<UISprite>();
+        animation = transform.FindChild("animation").GetComponent<UISprite>();
+        res = transform.FindChild("res").GetComponent<UISprite>();
+
+        againBtn.GetComponent<UIEventListener>().onClick = again;
     }
+    void again(GameObject button)
+    {
+        Global.client.again();
+    }
+
     bool isShow = false;
     void FixedUpdate()
     {
@@ -18,12 +29,20 @@ public class GameEndPanel : MonoBehaviour
         {
             if (!isShow)
             {
+                int ran = Random.Range(1, 6);
+                string win = "lose";
                 if(Global.client.gameRes==GameRes.ME_WIN){
-                   // toShow=transform.FindChild("");
-                  //  particle = transform.FindChild("");
+                    win = "win";
                 }
+                animation.spriteName = win + ran;
+                res.spriteName = win;
+                animation.GetComponent<UISpriteAnimation>().namePrefix = win + ran;
+                againBtn.spriteName = "again_" + win;
+
                 blurPanel.gameObject.SetActive(true);
-                //toShow.gameObject.SetActive(true);
+                res.gameObject.SetActive(true);
+                animation.gameObject.SetActive(true);
+                againBtn.gameObject.SetActive(true);
                 isShow = true;
             }
         }
@@ -32,8 +51,9 @@ public class GameEndPanel : MonoBehaviour
             if (isShow)
             {
                 blurPanel.gameObject.SetActive(false);
-                //toShow.gameObject.SetActive(false);
-                //particle.gameObject.SetActive(false);
+                res.gameObject.SetActive(false);
+                animation.gameObject.SetActive(false);
+                againBtn.gameObject.SetActive(false);
                 isShow = false;
             }
         }

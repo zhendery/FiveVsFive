@@ -87,6 +87,9 @@ namespace FiveVsFive
             ByteArray newMsg = new ByteArray();
             switch (action)
             {
+                case Const.NEW_TURN:
+                    ruleController.reset();//开始新游戏
+                    break;
                 case Const.YOUR_TURN:
                     GameRes res = ruleController.yourTurn();
                     if (res == GameRes.NO_WIN)//如果没有人赢则让ai走
@@ -125,6 +128,12 @@ namespace FiveVsFive
             msg.write(meFirst);
             sendMsg(msg);
             msg.Close();
+
+            if (!meFirst)
+            {
+                Thread.Sleep(1600);
+                ai.move();
+            }
         }
     }
 }

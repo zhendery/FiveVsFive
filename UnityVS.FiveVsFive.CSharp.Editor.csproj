@@ -199,13 +199,6 @@
     <None Include="Assets\NGUI\Examples\Atlases\Refractive\Refractive Font - Normal.txt" />
     <None Include="Assets\NGUI\Examples\Atlases\SciFi\SciFi Font - Header.txt" />
     <None Include="Assets\NGUI\Examples\Atlases\SciFi\SciFi Font - Normal.txt" />
-    <None Include="Assets\NGUI\Examples\Atlases\Wooden\Arimo14.txt" />
-    <None Include="Assets\NGUI\Examples\Atlases\Wooden\Arimo18.txt" />
-    <None Include="Assets\NGUI\Examples\Atlases\Wooden\Arimo20.txt" />
-    <None Include="Assets\NGUI\Examples\Models\Orc Armor\Orc Armor.shader" />
-    <None Include="Assets\NGUI\Examples\Models\Orc\Orc Skin.shader" />
-    <None Include="Assets\NGUI\Examples\Resources\Localization.txt" />
-    <None Include="Assets\NGUI\Examples\Shaders\Refractive.shader" />
     <None Include="Assets\NGUI\ReadMe - 3.5.5.txt" />
     <None Include="Assets\NGUI\Resources\Shaders\Unlit - Additive Colored.shader" />
     <None Include="Assets\NGUI\Resources\Shaders\Unlit - Depth Cutout.shader" />

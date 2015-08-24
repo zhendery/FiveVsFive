@@ -5,15 +5,17 @@ namespace FiveVsFive
     class AIController
     {
         LocalServer server;
-        ChessBoard board;
         public AIController(LocalServer server)
         {
-            board = Global.board;
             this.server = server;
+            Information info=Names.getRandomName();
+            Global.client.yourName = info.name;
+            Global.client.yourLogo = info.logo;
         }
 
         public void move()
         {
+            ChessBoard board = Global.board;
             Random ran = new Random(DateTime.Now.Millisecond);
             int[] myChesses = board.getChesses(false);
 
