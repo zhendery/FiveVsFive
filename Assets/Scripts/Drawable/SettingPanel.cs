@@ -8,8 +8,10 @@ public class SettingPanel : MonoBehaviour
     public UIEventListener[] buttons;
     UISprite[] backs;
     UIInput nameInput;
+    UIToggle audioButton;
     string myName;
     int myLogo, audioOn;
+    UIPlaySound clickSound;
 
     void Awake()
     {
@@ -21,18 +23,22 @@ public class SettingPanel : MonoBehaviour
             backs[i] = buttons[i].transform.FindChild("back").GetComponent<UISprite>();
 
         nameInput = transform.FindChild("myName").GetComponent<UIInput>();
+        audioButton = transform.FindChild("audioOn").GetComponent<UIToggle>();
+
+        clickSound = transform.GetComponent<UIPlaySound>();
     }
     void OnEnable()
     {
         myName = PlayerPrefs.GetString(Names.keyName);
-        myLogo = PlayerPrefs.GetInt(Names.keyLogo);
+        myLogo = PlayerPrefs.GetInt(Names.keyLogo)-1;
         audioOn = PlayerPrefs.GetInt(Names.keyAudio, 0);
 
         setShow();
     }
     void onClick(GameObject button)
     {
-        //playAudio
+        if (Global.client.audioOn)
+            clickSound.Play();
         switch (button.name)
         {
             case "commit":
@@ -42,13 +48,15 @@ public class SettingPanel : MonoBehaviour
                     return;
                 }
                 myName = nameInput.value;
+                audioOn = audioButton.value ? 1 : 0;
 
                 PlayerPrefs.SetString(Names.keyName, myName);
-                PlayerPrefs.SetInt(Names.keyLogo, myLogo);
+                PlayerPrefs.SetInt(Names.keyLogo, myLogo+1);
                 PlayerPrefs.SetInt(Names.keyAudio, audioOn);
 
-                Global.client.myLogo = myLogo;
+                Global.client.myLogo = myLogo+1;
                 Global.client.myName = myName;
+                Global.client.audioOn = audioButton.value;
 
                 Global.setSceneOld(GameScenes.WELCOME);
                 gameObject.SetActive(false);
@@ -77,7 +85,7 @@ public class SettingPanel : MonoBehaviour
         for (short i = 0; i < 6; ++i)
             backs[i].color = Color.white;
         backs[myLogo].color = selectedColor;
-        
-        //设置声音开关
+
+        audioButton.value = audioOn == 1;
     }
 }

@@ -39,6 +39,7 @@ public class WhoseTurn : MonoBehaviour
         while ("".Equals(Global.client.myName))
             yield return null;
         myLogo.spriteName = "" + Global.client.myLogo;
+        //NGUISnap.
         myName.text = Global.client.myName;
 
         while ("".Equals(Global.client.yourName))
@@ -81,8 +82,8 @@ public class WhoseTurn : MonoBehaviour
                 whose = Global.client.whoseTurn;
             }
 
-            else//没有在游戏中
-                isGaming = false;
         }
+        else//没有在游戏中
+            isGaming = false;
     }
 }

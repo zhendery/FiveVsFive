@@ -12,7 +12,7 @@ namespace FiveVsFive
 {
     class LanServer : Server  //相当于两个client的中转站，以及负责与ruleController沟通
     {
-        Socket client1, client2;
+        Socket client2;
         public override void start()
         {
             new Thread((ThreadStart)
@@ -42,8 +42,7 @@ namespace FiveVsFive
         }
         protected override void accepted(IAsyncResult iar)
         {
-            sock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            sock = (Socket)iar.AsyncState;
+            Socket sock = (Socket)iar.AsyncState;
 
             if (client1 == null)//本地客户端
             {

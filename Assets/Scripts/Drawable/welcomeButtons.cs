@@ -8,6 +8,8 @@ namespace FiveVsFive
     public class WelcomeButtons : MonoBehaviour
     {
         public UIEventListener[] buttons;
+        UIPlaySound clickSound;
+        public TweenPosition boardTween;
 
         void Start()
         {
@@ -19,11 +21,14 @@ namespace FiveVsFive
 
             Global.gameScene = GameScenes.WELCOME;
             Global.setSceneOld(GameScenes.WELCOME);
+
+            clickSound = transform.GetComponent<UIPlaySound>();
         }
 
         void onClick(GameObject button)
         {
-            //playAudio
+            if (Global.client.audioOn)
+                clickSound.Play();
             switch (button.name)
             {
                 case "local"://挑战电脑 -->直接开始游戏
@@ -71,11 +76,15 @@ namespace FiveVsFive
             {
                 welTop.PlayForward();
                 welDown.PlayForward();
+                boardTween.PlayForward();
+                if (Global.client.audioOn)
+                    welTop.transform.GetComponent<UIPlaySound>().Play();
             }
             else
             {
                 welTop.PlayReverse();
                 welDown.PlayReverse();
+                boardTween.PlayReverse();
             }
         }
         delegate void CallFunc();
@@ -206,6 +215,8 @@ namespace FiveVsFive
             //监听back键
             if (Input.GetKeyUp(KeyCode.Escape))
             {
+                if (Global.client.audioOn)
+                    clickSound.Play();
                 switch (Global.gameScene)//表示当前场景
                 {
                     case GameScenes.WELCOME:

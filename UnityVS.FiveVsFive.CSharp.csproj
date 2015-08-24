@@ -217,11 +217,6 @@
   <ItemGroup>
     <None Include="Assets\Materials\CustomSpecular.shader" />
     <None Include="Assets\Materials\WaterBlur.shader" />
-    <None Include="Assets\NGUI\Examples\Atlases\Fantasy\Fantasy Font - Normal.txt" />
-    <None Include="Assets\NGUI\Examples\Atlases\Refractive\Refractive Font - Header.txt" />
-    <None Include="Assets\NGUI\Examples\Atlases\Refractive\Refractive Font - Normal.txt" />
-    <None Include="Assets\NGUI\Examples\Atlases\SciFi\SciFi Font - Header.txt" />
-    <None Include="Assets\NGUI\Examples\Atlases\SciFi\SciFi Font - Normal.txt" />
     <None Include="Assets\NGUI\ReadMe - 3.5.5.txt" />
     <None Include="Assets\NGUI\Resources\Shaders\Unlit - Additive Colored.shader" />
     <None Include="Assets\NGUI\Resources\Shaders\Unlit - Depth Cutout.shader" />

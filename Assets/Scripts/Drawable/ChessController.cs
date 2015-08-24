@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace FiveVsFive
 {
@@ -14,6 +15,7 @@ namespace FiveVsFive
 
         public GameObject chessPre, tipPre;
         public Transform tipsParent;
+        public AudioClip[] chessAudio;
 
         const int BLOCK_WID = 215;
         float aspect;
@@ -73,7 +75,13 @@ namespace FiveVsFive
             move.to = newPos;
             move.ResetToBeginning();
             move.PlayForward();
-        }
+            move.SetOnFinished(
+                delegate ()
+            {
+                chesses[index].GetComponent<AudioSource>().PlayOneShot(chessAudio[1]);//0为up,1为down,2为over
+            });
+             }
+
         void overAction(bool isMine, int index)
         {
             Vector3 newEuler = (isMine ^ Global.client.myColor) ? Vector3.zero : v_pi;//^是异或(不同为true)，不许再改了~~
@@ -82,6 +90,7 @@ namespace FiveVsFive
             rotate.to = newEuler;
             rotate.ResetToBeginning();
             rotate.PlayForward();
+          //  chesses[index].GetComponent<AudioSource>().PlayOneShot(chessAudio[2]);//0为up,1为down,2为over
         }
 
         static Vector3[] v_up = { new Vector3(0, 0, -1f), new Vector3(0, 0, -0.5f), new Vector3(0, 0, -0.3f), new Vector3(0, 0, -0.2f) };
@@ -91,19 +100,21 @@ namespace FiveVsFive
             int index = Global.board.chessUp;
             if (index < 0 || index > 9)
                 return;
+            AudioSource audio = chesses[index].GetComponent<AudioSource>();
             int selected = Global.board.selected;
             if (index != selected)//此棋子未抬起，则将其抬起
             {
                 int upIndex = (int)((Vector2)chesses[index].localPosition).magnitude;
                 bool white = chesses[index].eulerAngles.magnitude < 1;
                 chesses[index].Translate(white ? v_up[upIndex] : -v_up[upIndex]);
-                //playAudio 抬起
+                audio.PlayOneShot(chessAudio[0]);//0为up,1为down,2为over
+
                 if (selected > -1)//如果原来有抬起的，将其放下
                 {
                     upIndex = (int)((Vector2)chesses[selected].localPosition).magnitude;
                     white = chesses[selected].eulerAngles.magnitude < 1;
                     chesses[selected].Translate(white ? -v_up[upIndex] : v_up[upIndex]);
-                    //playAudio 放下
+                    audio.PlayOneShot(chessAudio[1]);//0为up,1为down,2为over
                 }
                 Global.board.selected = index;
             }
@@ -112,7 +123,7 @@ namespace FiveVsFive
                 int upIndex = (int)((Vector2)chesses[selected].localPosition).magnitude;
                 bool white = chesses[selected].eulerAngles.magnitude < 1;
                 chesses[selected].Translate(white ? -v_up[upIndex] : v_up[upIndex]);
-                //playAudio 放下
+                audio.PlayOneShot(chessAudio[1]);//0为up,1为down,2为over
                 Global.board.selected = -1;
             }
             Global.board.chessUp = -1;
@@ -131,7 +142,7 @@ namespace FiveVsFive
         public Camera camerUI;
         void OnMouseDown()
         {
-            if (Global.client.whoseTurn == GameState.MY_TURN)
+            if (Global.client.isGaming && Global.client.whoseTurn == GameState.MY_TURN)
             {
                 float minDis = 32f;
                 int index = -1;

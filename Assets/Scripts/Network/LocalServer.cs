@@ -11,7 +11,7 @@ namespace FiveVsFive
     class Server
     {
         protected bool isRunning;
-        protected Socket sock;
+        protected Socket sock, client1;
         protected RuleController ruleController;
 
         public Server()
@@ -35,22 +35,25 @@ namespace FiveVsFive
         }
         protected virtual void accepted(IAsyncResult iar)
         {
-            Socket client = (Socket)iar.AsyncState;
-            sock = client.EndAccept(iar);
+            Socket sock = (Socket)iar.AsyncState;
+            client1 = sock.EndAccept(iar);
             isRunning = true;
 
             new Thread((ThreadStart)recieveMsg).Start();
 
             ruleController.reset();//开始新游戏
+
+            sock.Close();//联机状态中sock充当监听角色，监听完了即释放
+            sock = null;
         }
         protected virtual void recieveMsg()
         {
             while (isRunning)
             {
-                if (sock.Available > 0)
+                if (client1.Available > 0)
                 {
-                    byte[] buffer = new byte[sock.Available];
-                    sock.Receive(buffer);
+                    byte[] buffer = new byte[client1.Available];
+                    client1.Receive(buffer);
                     ByteArray msg = new ByteArray();
                     msg.decode(buffer);
                     handleMsg(msg);
@@ -62,7 +65,7 @@ namespace FiveVsFive
         protected void sendMsg(ByteArray msg)
         {
             byte[] bits = msg.encode();
-            sock.Send(bits);
+            client1.Send(bits);
             msg.Close();
         }
         public virtual void newTurn(GameState whoseTurn) { }
@@ -111,10 +114,10 @@ namespace FiveVsFive
                     }
                     break;
                 case Const.DISCONNECT:
-                    if (sock != null)
+                    if (client1 != null)
                     {
-                        sock.Close();
-                        sock = null;
+                        client1.Close();
+                        client1 = null;
                     }
                     break;
             }
