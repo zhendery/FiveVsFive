@@ -4,13 +4,12 @@ using FiveVsFive;
 
 public class GameEndPanel : MonoBehaviour
 {
-    Transform blurPanel;
+    public Transform blurPanel;
     UISprite againBtn, animate, res;
     UIPlaySound clickSound,winLoseSound;
     public AudioClip[] winLoseAudio;
     void Start()
     {
-        blurPanel = transform.FindChild("blurPanel");
         againBtn=transform.FindChild("again").GetComponent<UISprite>();
         animate = transform.FindChild("animation").GetComponent<UISprite>();
         res = transform.FindChild("res").GetComponent<UISprite>();

@@ -66,7 +66,7 @@ half4 frag( v2f i ) : COLOR
  
     screenPos.x = (screenPos.x + 1) * 0.5;
  
-    screenPos.y = 1-(screenPos.y + 1) * 0.5;
+    screenPos.y = (screenPos.y + 1) * 0.5;
  
     half4 sum = half4(0.0h,0.0h,0.0h,0.0h);   
     sum += tex2D( _GrabTexture, float2(screenPos.x-5.0 * depth, screenPos.y+5.0 * depth)) * 0.025;    

@@ -90,7 +90,7 @@ namespace FiveVsFive
             rotate.to = newEuler;
             rotate.ResetToBeginning();
             rotate.PlayForward();
-          //  chesses[index].GetComponent<AudioSource>().PlayOneShot(chessAudio[2]);//0为up,1为down,2为over
+            chesses[index].GetComponent<AudioSource>().PlayOneShot(chessAudio[2]);//0为up,1为down,2为over
         }
 
         static Vector3[] v_up = { new Vector3(0, 0, -1f), new Vector3(0, 0, -0.5f), new Vector3(0, 0, -0.3f), new Vector3(0, 0, -0.2f) };

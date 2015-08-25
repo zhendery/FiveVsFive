@@ -88,7 +88,15 @@ namespace FiveVsFive
                     whoseTurn = GameState.NO_TURN;
                     gameRes = (GameRes)msg.readInt();//将以int形式发送过来的比赛结果存入gameRes以供检测
                     break;
+                case Const.RETRACT_APPLY://收到悔棋申请~则显示提示，如同意则回发悔棋指令
 
+                    break;
+                case Const.RETRACT_CHESS:
+                    Global.board.retract();
+                    break;
+                case Const.RETRACT_DISAGREE:
+                    //不同意悔棋，提示
+                    break;
                 case Const.DISCONNECT://有人掉线了，或者有人退出了isRunning = false;
                     if (client != null)
                     {
@@ -109,7 +117,12 @@ namespace FiveVsFive
             board.reset();
             isGaming = true;
         }
-
+        public void retract()
+        {
+            ByteArray msg = new ByteArray();
+            msg.write(Const.RETRACT_APPLY);
+            sendMsg(msg);
+        }
         public void again()
         {
             ByteArray msg = new ByteArray();
@@ -133,6 +146,12 @@ namespace FiveVsFive
             ByteArray msg = new ByteArray();
             msg.write(Const.MOVE_CHESS);
             msg.write(pos);
+            sendMsg(msg);
+        }
+        public void defeated()
+        {
+            ByteArray msg = new ByteArray();
+            msg.write(Const.END_GAME);
             sendMsg(msg);
         }
         public void yourTurn()

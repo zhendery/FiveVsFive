@@ -35,17 +35,20 @@ public class SettingPanel : MonoBehaviour
 
         setShow();
     }
-    void onClick(GameObject button)
+    public void onClick(GameObject button)
     {
         if (Global.client.audioOn)
             clickSound.Play();
         switch (button.name)
         {
-            case "commit":
+            case "save":
                 if ("".Equals(nameInput.value))
                 {
-                    //提示
-                    return;
+                    MessageBox.show("请输入您的昵称！！", "是",
+                            delegate()
+                            {
+                            }, null,null);
+                    break;
                 }
                 myName = nameInput.value;
                 audioOn = audioButton.value ? 1 : 0;

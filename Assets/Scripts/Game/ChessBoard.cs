@@ -93,6 +93,7 @@ namespace FiveVsFive
             if (revese)
                 for (short i = 0; i < 10; ++i)
                     board.chesses[i].isMine = !board.chesses[i].isMine;
+            board.lastBoard = this.lastBoard;
             return board;
         }
         public void reset()
@@ -207,10 +208,36 @@ namespace FiveVsFive
             return list.ToArray();
         }
 
+        ChessBoard lastBoard;//上一步的棋盘~用来悔棋
+        public void retract()//悔棋
+        {
+            ChessBoard theBoard = lastBoard.lastBoard;
+
+            if (theBoard != null)
+            {
+                for (short i = 0; i < 10; ++i)
+                {
+                    Global.board.chesses[i].setOldPos();
+                    Global.board.chesses[i].setOldMine();
+
+                    Global.board.chesses[i].x = theBoard.chesses[i].x;
+                    Global.board.chesses[i].y = theBoard.chesses[i].y;
+                    Global.board.chesses[i].isMine = theBoard.chesses[i].isMine;
+                }
+
+                for (short i = 0; i < 5; ++i)
+                    for (short k = 0; k < 5; ++k)
+                        Global.board.locations[i][k] = theBoard.locations[i][k];
+
+                Global.board.lastBoard = theBoard.lastBoard;
+            }
+        }
         public void moveChess(int pos)
         {
             if (selected > -1 && selected < 10)
             {
+                lastBoard = copyBoard(false);//在走之前将原来的棋盘复制一份
+
                 locations[chesses[selected].x][chesses[selected].y] = -1;
                 chesses[selected].setOldPos();
                 chesses[selected].x = pos % 5;

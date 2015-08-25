@@ -113,6 +113,15 @@ namespace FiveVsFive
                         sendMsg(newMsg);
                     }
                     break;
+                case Const.RETRACT_APPLY://本机收到申请则默认同意~直接回发悔棋指令
+                    newMsg.write(Const.RETRACT_CHESS);
+                    sendMsg(newMsg);
+                    break;
+                case Const.END_GAME:
+                    newMsg.write(Const.END_GAME);
+                    newMsg.write((int)GameRes.YOU_WIN);//发送对方赢的结果
+                    sendMsg(newMsg);
+                    break;
                 case Const.DISCONNECT:
                     if (client1 != null)
                     {

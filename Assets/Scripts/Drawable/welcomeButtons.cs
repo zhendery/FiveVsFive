@@ -176,7 +176,7 @@ namespace FiveVsFive
                 showFriend.SetActive(false);
                 return;
             }
-            tip = "请保证您和您的好友处在同一网段中，并请您的好友依次选择“挑战好友”--" + tip;
+            tip = "请保证您和您的好友处在同一局域网，并请您的好友依次选择“挑战好友”--" + tip;
             showFriend.SetActive(true);
             UILabel titleLabel = showFriend.transform.FindChild("title").GetComponent<UILabel>(),
                 tipLabel = showFriend.transform.FindChild("tip").GetComponent<UILabel>();
@@ -220,19 +220,47 @@ namespace FiveVsFive
                 switch (Global.gameScene)//表示当前场景
                 {
                     case GameScenes.WELCOME:
-                        Application.Quit();
+                        MessageBox.show("您不要和我玩了吗？", "残忍",
+                            delegate()
+                            {
+                                Application.Quit();
+                            }, "心软", null);
                         break;
                     case GameScenes.CHOOSE_FRIEND://回到欢迎画面
                         Global.setSceneOld(GameScenes.WELCOME);
                         break;
                     case GameScenes.GAME_SCENE:
-                        //出现离开提示{}
-                        Global.client.close();
-                        Global.setSceneOld(GameScenes.WELCOME);
+                        if (Global.client.isGaming)
+                        {
+                            MessageBox.show("您真要认输离开吗？", "是",
+                            delegate()
+                            {
+                                //战绩 - 1;
+
+                                Global.client.close();
+                                Global.setSceneOld(GameScenes.WELCOME);
+                            }, "否", null);
+                        }
+                        else
+                        {
+                            Global.client.gameRes = GameRes.NO_WIN;
+                            Global.client.whoseTurn = GameState.NO_TURN;
+                            Global.client.close();
+                            Global.setSceneOld(GameScenes.WELCOME);
+                        }
                         break;
                     case GameScenes.SETTING:
-                        transform.parent.FindChild("settingPanel").gameObject.SetActive(false);
-                        Global.setSceneOld(GameScenes.WELCOME);
+                        MessageBox.show("您要保存所做的更改吗？", "保存",
+                            delegate()
+                            {
+                                GameObject obj = new GameObject("save");
+                                transform.parent.FindChild("settingPanel").SendMessage("onClick", obj);
+                            }, "放弃",
+                            delegate()
+                            {
+                                transform.parent.FindChild("settingPanel").gameObject.SetActive(false);
+                                Global.setSceneOld(GameScenes.WELCOME);
+                            });
                         break;
                     default:
                         Debug.Log("没有这个场景");

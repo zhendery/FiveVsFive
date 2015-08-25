@@ -6,6 +6,7 @@ public class GameButtons : MonoBehaviour
 {
 
     UIEventListener[] buttons;
+    UIButton retractBtn;
     UIPlaySound clickSound;
     void Start()
     {
@@ -16,6 +17,7 @@ public class GameButtons : MonoBehaviour
             buttons[i] = btns[i];
             buttons[i].onClick = onClick;
         }
+        retractBtn = buttons[1].GetComponent<UIButton>();
         clickSound = transform.GetComponent<UIPlaySound>();
     }
     void onClick(GameObject button)
@@ -24,10 +26,21 @@ public class GameButtons : MonoBehaviour
             clickSound.Play();
         switch (button.name)
         {
-
-            default:
-                Debug.Log("no button!!");
+            case "retract":
+                Global.client.retract();
+                break;
+            case "defeated":
+                MessageBox.show("您真要承认比对方怂吗？", "承认",
+                            delegate()
+                            {
+                                //战绩 - 1;
+                                Global.client.defeated();
+                            }, "不服", null);
                 break;
         }
+    }
+    void FixedUpdate()
+    {
+        retractBtn.isEnabled = (Global.client != null && Global.client.isGaming && Global.client.whoseTurn == GameState.MY_TURN);
     }
 }

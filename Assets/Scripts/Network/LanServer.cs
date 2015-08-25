@@ -136,6 +136,16 @@ namespace FiveVsFive
                         sendMsg(from, newMsg);
                     }
                     break;
+                case Const.RETRACT_APPLY://收到悔棋申请则将申请发送给对方
+                    sendMsg(to, msg);
+                    break;
+                case Const.RETRACT_DISAGREE://不同意悔棋
+                    sendMsg(to, msg);
+                    break;
+                case Const.RETRACT_CHESS://收到悔棋指令（同意），将其传送给两方
+                    sendMsg(from, msg);
+                    sendMsg(to, msg);
+                    break;
                 case Const.DISCONNECT:
                     sendMsg(to, msg);
                     if (client1 != null)
