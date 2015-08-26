@@ -64,10 +64,8 @@ namespace FiveVsFive
             switch (action)
             {
                 case Const.CONNECT:
-                    newMsg.write(Const.CONNECT);
-                    newMsg.write(myLogo);
-                    newMsg.write(myName);
-                    sendMsg(newMsg);
+                    yourLogo = msg.readInt();
+                    yourName = msg.readString();
                     break;
                 case Const.NEW_TURN:
                     bool isMyTurn = msg.readBool();
@@ -89,13 +87,25 @@ namespace FiveVsFive
                     gameRes = (GameRes)msg.readInt();//将以int形式发送过来的比赛结果存入gameRes以供检测
                     break;
                 case Const.RETRACT_APPLY://收到悔棋申请~则显示提示，如同意则回发悔棋指令
-
+                    MessageBox.show("您同意您的对手悔棋吗？", "同意",
+                        delegate()
+                        {
+                            newMsg.write(Const.RETRACT_CHESS);
+                            sendMsg(newMsg);
+                        },
+                        "拒绝",
+                        delegate()
+                        {
+                            newMsg.write(Const.RETRACT_DISAGREE);
+                            sendMsg(newMsg);
+                        });
                     break;
                 case Const.RETRACT_CHESS:
                     Global.board.retract();
                     break;
                 case Const.RETRACT_DISAGREE:
-                    //不同意悔棋，提示
+                    MessageBox.show("您的对手不同意您悔棋", "了解",
+                        delegate() { }, null, null);
                     break;
                 case Const.DISCONNECT://有人掉线了，或者有人退出了isRunning = false;
                     if (client != null)
@@ -108,6 +118,15 @@ namespace FiveVsFive
                     break;
             }
             msg.Close();
+        }
+
+        void sendMyInfo()
+        {
+            ByteArray newMsg = new ByteArray();
+            newMsg.write(Const.CONNECT);
+            newMsg.write(myLogo);
+            newMsg.write(myName);
+            sendMsg(newMsg);
         }
         void newTurn(bool isMyTurn)
         {
@@ -252,6 +271,8 @@ namespace FiveVsFive
                 return;
             }
             isRunning = true;
+
+            sendMyInfo();//一连上就将自己的信息发送过去
 
             new Thread((ThreadStart)recieveMsg).Start();
         }

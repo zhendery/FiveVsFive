@@ -55,8 +55,7 @@ namespace FiveVsFive
                 isRunning = true;
 
                 new Thread((ThreadStart)recieveMsg).Start();
-                ruleController.reset();//开始新游戏
-
+                connected();
                 sock.Close();//联机状态中sock充当监听角色，监听完了即释放
                 sock = null;
             }
@@ -131,9 +130,14 @@ namespace FiveVsFive
                     else//如果有人赢了，则向两位玩家发送谁赢了
                     {
                         newMsg.write(Const.END_GAME);
-                        newMsg.write((int)res);//将比赛结果以int的形式发送给两方
-                        sendMsg(to, newMsg);
-                        sendMsg(from, newMsg);
+                        newMsg.write((int)res);//将比赛结果以int形式发送给两方
+                        sendMsg(client1, newMsg);
+
+                        newMsg.Close();
+                        newMsg = new ByteArray();
+                        newMsg.write(Const.END_GAME);
+                        newMsg.write(2/(int)res);//将比赛结果以int形式发送给两方
+                        sendMsg(client2, newMsg);
                     }
                     break;
                 case Const.RETRACT_APPLY://收到悔棋申请则将申请发送给对方
@@ -145,6 +149,9 @@ namespace FiveVsFive
                 case Const.RETRACT_CHESS://收到悔棋指令（同意），将其传送给两方
                     sendMsg(from, msg);
                     sendMsg(to, msg);
+                    break;
+                case Const.CONNECT:
+                    sendMsg(to,msg);//起到一个传递消息的作用
                     break;
                 case Const.DISCONNECT:
                     sendMsg(to, msg);
@@ -165,6 +172,12 @@ namespace FiveVsFive
             newMsg.Close();
             msg.Close();
         }
+        void connected()
+        {
+            Thread.Sleep(200);
+            ruleController.reset();//开始新游戏
+        }
+
         protected void sendMsg(Socket sock, ByteArray msg)
         {
             byte[] bits = msg.encode();

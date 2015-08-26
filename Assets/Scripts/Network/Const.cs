@@ -6,8 +6,8 @@
         public const int MAX_MSG_LEN = 64;
         //public const string BROADCAST_MSG = "FiveVsFive";
 
-        public const byte CONNECT = 0,
-            DISCONNECT = 1,
+        public const byte CONNECT = 41,
+            DISCONNECT = 42,
 
             GAME_START = 11,
             UP_CHESS = 12,

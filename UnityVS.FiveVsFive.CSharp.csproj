@@ -196,6 +196,7 @@
     <Compile Include="Assets\Scripts\Drawable\ChessController.cs" />
     <Compile Include="Assets\Scripts\Drawable\GameButtons.cs" />
     <Compile Include="Assets\Scripts\Drawable\GameEndPanel.cs" />
+    <Compile Include="Assets\Scripts\Drawable\HelpControl.cs" />
     <Compile Include="Assets\Scripts\Drawable\MessageBox.cs" />
     <Compile Include="Assets\Scripts\Drawable\SettingPanel.cs" />
     <Compile Include="Assets\Scripts\Drawable\TimeUpdate.cs" />

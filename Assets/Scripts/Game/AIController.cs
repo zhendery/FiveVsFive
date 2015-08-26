@@ -16,6 +16,7 @@ namespace FiveVsFive
         public void move()
         {
             ChessBoard board = Global.board;
+            //此处应为ai
             Random ran = new Random(DateTime.Now.Millisecond);
             int[] myChesses = board.getChesses(false);
 
@@ -26,9 +27,9 @@ namespace FiveVsFive
                 canGo = board.getCanGo();
             }
             while (canGo.Length == 0);
-
-
             int step = canGo[ran.Next(canGo.Length)];
+
+
             Global.client.whoseTurn = GameState.NO_TURN;
             board.moveChess(step);
         }

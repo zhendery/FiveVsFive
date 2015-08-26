@@ -4,7 +4,7 @@ using System.Collections;
 public class WaitingUpdate : MonoBehaviour {
 
     UISprite sprite;
-	void Start () {
+	void OnEnable () {
         sprite = transform.GetComponent<UISprite>();
         StartCoroutine(hide());
 	}

@@ -58,7 +58,7 @@ namespace FiveVsFive
                     StartCoroutine(waitForStart());
                     break;
                 case "help"://挑战须知 -->游戏帮助界面
-                    Debug.Log("hepl");
+                    transform.parent.parent.FindChild("helpMask").gameObject.SetActive(true);
                     break;
                 case "setting"://设置用户头像和昵称
                     Global.setSceneOld(GameScenes.SETTING);
@@ -99,6 +99,8 @@ namespace FiveVsFive
                     s1 = 0; e1 = 4;
                     if (Global.gameScene == GameScenes.CHOOSE_FRIEND)
                     { s2 = 4; e2 = 6; }
+                    else if (Global.gameScene == GameScenes.HELP)
+                    { hideShowWels(true); }
                     break;
 
 
@@ -127,6 +129,12 @@ namespace FiveVsFive
                 case GameScenes.JOIN_FRIEND:
                     if (Global.gameScene == GameScenes.GAME_SCENE)
                         showFriend();
+                    break;
+                case GameScenes.HELP://只可能是从帮助界面回到welcome
+                    {
+                        hideShowWels(false);
+                        s2 = 0; e2 = 4;
+                    }
                     break;
             }
 
