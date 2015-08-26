@@ -71,9 +71,9 @@ namespace FiveVsFive
     }
     public class ChessBoard
     {
-        Chess[] chesses;//表示10颗棋子
+        public Chess[] chesses;//表示10颗棋子
         public int selected, chessUp;
-        int[][] locations;//表示25个棋点,值为chesses索引
+        public int[][] locations;//表示25个棋点,值为chesses索引
 
         public ChessBoard()
         {
@@ -82,7 +82,7 @@ namespace FiveVsFive
             for (short i = 0; i < 5; ++i)
                 locations[i] = new int[5];
         }
-        ChessBoard copyBoard(bool revese)//revese表示复制的是对方的棋盘
+        public ChessBoard copyBoard(bool revese)//revese表示复制的是对方的棋盘
         {
             ChessBoard board = new ChessBoard();
             for (short i = 0; i < 10; ++i)
@@ -277,7 +277,7 @@ namespace FiveVsFive
         }
 
 
-        int[] ja(int index)
+        public int[] ja(int index)
         {
             List<int> res = new List<int>();
             Chess c = chesses[index];
@@ -298,7 +298,7 @@ namespace FiveVsFive
             return res.ToArray();
         }
 
-        int[] tiao(int index)
+        public int[] tiao(int index)
         {
             List<int> res = new List<int>();
             Chess c = chesses[index];
@@ -339,7 +339,7 @@ namespace FiveVsFive
                 chesses[index].isMine = !chesses[index].isMine;
             }
         }
-        void check3(int index)//此方法在判断三颗的时候调用
+        public void check3(int index)//此方法在判断三颗的时候调用，也供AI试走
         {
             int[] tiaoRes = tiao(index);
             foreach (int r in tiaoRes)
